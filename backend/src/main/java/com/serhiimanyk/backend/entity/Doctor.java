@@ -1,13 +1,19 @@
 package com.serhiimanyk.backend.entity;
 
+import com.serhiimanyk.backend.enums.Specialization;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name="DOCTORS")
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class Doctor {
 
     @Id
@@ -28,7 +34,7 @@ public class Doctor {
     @NotBlank(message = "{NotEmpty.doctor.email}")
     @Email(message = "{Email.doctor.email}")
     @Size(max = 100)
-    @Column(name = "EMAIL", length = 100, unique = true)
+    @Column(name = "DOCTOR_EMAIL", length = 100, unique = true, nullable = false)
     private String email;
 
     @NotBlank(message = "{NotEmpty.doctor.password}")
@@ -42,5 +48,10 @@ public class Doctor {
     )
     @Column(name = "PHONE_NUMBER", length = 20)
     private String phoneNumber;
+
+    @NotNull(message = "{NotNull.doctor.specialization}")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "DOCTOR_SPECIALIZATION", nullable = false)
+    private Specialization specialization;
 
 }
