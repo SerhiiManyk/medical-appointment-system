@@ -40,10 +40,6 @@ public class TimeSlot {
     @JoinColumn(name = "DOCTOR_ID", nullable = false)
     private Doctor doctor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PATIENT_ID")
-    private Patient patient;
-
     @NotNull(message = "{NotNull.timeslot.status}")
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS", nullable = false)
