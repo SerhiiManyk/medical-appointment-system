@@ -1,14 +1,14 @@
 package com.serhiimanyk.backend.entity;
 
+import com.serhiimanyk.backend.enums.Gender;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDate;
 
 @Entity
 @Table(name="PATIENTS")
@@ -50,4 +50,13 @@ public class Patient {
     )
     @Column(name = "PATIENT_PHONE_NUMBER", length = 20)
     private String phoneNumber;
+
+    @NotNull(message = "{NotNull.patient.gender}")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "GENDER", nullable = false)
+    private Gender gender;
+
+    @NotNull(message = "{NotNull.patient.dateOfBirth}")
+    @Column(name = "DATE_OF_BIRTH", nullable = false)
+    private LocalDate dateOfBirth;
 }

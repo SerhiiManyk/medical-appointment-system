@@ -40,4 +40,7 @@ public class Appointment {
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS", nullable = false)
     private AppointmentStatus status;
+
+    @Column(name = "APPOINTMENT_COMMENT")
+    private String comment;
 }
