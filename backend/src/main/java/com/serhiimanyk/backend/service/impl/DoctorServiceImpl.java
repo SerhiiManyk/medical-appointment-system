@@ -3,15 +3,12 @@ package com.serhiimanyk.backend.service.impl;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.enums.Specialization;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;
+import com.serhiimanyk.backend.exception.EmailAlreadyExistsException;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.service.DoctorService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-
-import static java.util.Optional.ofNullable;
 
 @Service
 public class DoctorServiceImpl implements DoctorService {
@@ -26,13 +23,16 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public Doctor getDoctorByEmail(String email) {
+
         return doctorRepository.findByEmail(email)
-                .orElseThrow(() ->new DoctorNotFoundException("Doctor with email " + email + " is not found"));
+                .orElseThrow(() -> new DoctorNotFoundException("Doctor with email " + email + " is not found"));
     }
 
     @Override
     public Doctor getDoctorById(Long id) {
-        return null;
+
+        return doctorRepository.findById(id)
+                .orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + id + " not found"));
     }
 
     @Override
@@ -57,11 +57,37 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public Doctor updateDoctor(Doctor doctor) {
-        return null;
+
+        Doctor doctorToUpdate = getDoctorById(doctor.getId());
+
+        doctorToUpdate.setFirstName(doctor.getFirstName());
+        doctorToUpdate.setLastName(doctor.getLastName());
+        doctorToUpdate.setSpecialization(doctor.getSpecialization());
+        doctorToUpdate.setPassword(doctor.getPassword());
+        doctorToUpdate.setPhoneNumber(doctor.getPhoneNumber());
+
+        if (!doctorToUpdate.getEmail().equals(doctor.getEmail())) {
+
+            if (doctorRepository.existsByEmailAndIdNot(
+                    doctor.getEmail(),
+                    doctor.getId()
+            )) {
+                throw new EmailAlreadyExistsException(
+                        "Doctor with email " + doctor.getEmail() + " already exists"
+                );
+            }
+
+            doctorToUpdate.setEmail(doctor.getEmail());
+        }
+
+        return doctorRepository.save(doctorToUpdate);
     }
 
     @Override
     public void deleteDoctorById(Long id) {
 
+        Doctor doctor = getDoctorById(id);
+
+        doctorRepository.delete(doctor);
     }
 }
