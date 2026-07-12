@@ -7,10 +7,12 @@ import com.serhiimanyk.backend.exception.EmailAlreadyExistsException;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.service.DoctorService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 public class DoctorServiceImpl implements DoctorService {
 
 
@@ -37,22 +39,23 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public List<Doctor> getBySpecialization(Specialization specialization) {
-        return List.of();
-    }
 
-    @Override
-    public void checkEmailUnique(String email) {
-
+        return doctorRepository.findBySpecialization(specialization);
     }
 
     @Override
     public List<Doctor> getAllDoctors() {
-        return List.of();
+
+        return doctorRepository.findAll();
     }
 
     @Override
     public Doctor createDoctor(Doctor doctor) {
-        return null;
+
+        if(doctorRepository.existsByEmail(doctor.getEmail())) {
+            throw new EmailAlreadyExistsException("Doctor with email " + doctor.getEmail() + " already exists");
+        }
+        return doctorRepository.save(doctor);
     }
 
     @Override

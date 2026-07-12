@@ -13,8 +13,6 @@ public interface DoctorService {
 
     List<Doctor> getBySpecialization(Specialization specialization);
 
-    void checkEmailUnique(String email);
-
     List<Doctor> getAllDoctors ();
 
     Doctor createDoctor(Doctor doctor);
