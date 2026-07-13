@@ -18,5 +18,4 @@ public interface PatientService {
 
     void deletePatientById(Long id);
 
-    void checkEmailUnique(String email);
 }
