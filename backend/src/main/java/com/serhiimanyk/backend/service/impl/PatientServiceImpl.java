@@ -40,7 +40,7 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public Patient createPatient(Patient patient) {
 
-        if(patientRepository.existsByEmail(patient.getEmail())) {
+        if (patientRepository.existsByEmail(patient.getEmail())) {
             throw new EmailAlreadyExistsException("Patient with email " + patient.getEmail() + " already exists");
         }
         return patientRepository.save(patient);
