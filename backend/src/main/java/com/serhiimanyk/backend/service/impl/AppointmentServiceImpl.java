@@ -1,7 +1,12 @@
 package com.serhiimanyk.backend.service.impl;
 
 import com.serhiimanyk.backend.entity.Appointment;
-import com.serhiimanyk.backend.exception.AppointmentNotFoundException;
+import com.serhiimanyk.backend.entity.Doctor;
+import com.serhiimanyk.backend.entity.Patient;
+import com.serhiimanyk.backend.entity.TimeSlot;
+import com.serhiimanyk.backend.enums.AppointmentStatus;
+import com.serhiimanyk.backend.enums.TimeSlotStatus;
+import com.serhiimanyk.backend.exception.*;
 import com.serhiimanyk.backend.repository.AppointmentRepository;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.PatientRepository;
@@ -29,7 +34,28 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public Appointment createAppointment(Long patientId, Long doctorId, Long timeSlotId) {
 
-        return appointmentRepository.save(new Appointment());
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new PatientNotFoundException("Patient with id " + patientId + " is not found"));
+
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + doctorId + " is not found"));
+
+        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
+                .orElseThrow(() -> new TimeslotNotFoundException("Timeslot with id " + timeSlotId + " is not found"));
+
+        if (timeSlot.getStatus().equals(TimeSlotStatus.BOOKED)){
+            throw new TimeslotAlreadyBookedException("Timeslot " + timeSlotId + " is already booked.");
+        }
+        if(!doctorId.equals(timeSlot.getDoctor().getId())) {
+            throw new TimeSlotDoesNotBelongToDoctorException("Doctor with id " + doctorId + " is not found.");
+        }
+        Appointment appointment = new Appointment();
+        appointment.setPatient(patient);
+        appointment.setDoctor(doctor);
+        appointment.setTimeSlot(timeSlot);
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        timeSlot.setStatus(TimeSlotStatus.BOOKED);
+        return appointmentRepository.save(appointment);
     }
 
     @Override
