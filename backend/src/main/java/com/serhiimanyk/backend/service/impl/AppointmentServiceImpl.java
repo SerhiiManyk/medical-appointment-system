@@ -67,12 +67,18 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<Appointment> getAppointmentsByPatientId(Long id) {
-        return List.of();
+
+        patientRepository.findById(id).orElseThrow(() -> new PatientNotFoundException("Patient with id " + id + " is not found"));
+
+        return appointmentRepository.findByPatientId(id);
     }
 
     @Override
     public List<Appointment> getAppointmentsByDoctorId(Long id) {
-        return List.of();
+
+       doctorRepository.findById(id).orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + id + " is not found"));
+
+        return appointmentRepository.findByDoctorId(id);
     }
 
     @Override
