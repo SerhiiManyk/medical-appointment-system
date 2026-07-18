@@ -1,6 +1,10 @@
 package com.serhiimanyk.backend.service.impl;
 
+import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.TimeSlot;
+import com.serhiimanyk.backend.enums.TimeSlotStatus;
+import com.serhiimanyk.backend.exception.DoctorNotFoundException;
+import com.serhiimanyk.backend.exception.InvalidTimeSlotException;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
 import com.serhiimanyk.backend.service.TimeSlotService;
@@ -21,8 +25,28 @@ public class TimeslotServiceImpl implements TimeSlotService {
     private final DoctorRepository doctorRepository;
 
     @Override
-    public TimeSlot createTimeSlot(TimeSlot timeSlot) {
-        return null;
+    public TimeSlot createTimeSlot(Long doctorId, TimeSlot timeSlot) {
+
+        LocalDate nowDate = LocalDate.now();
+
+        if (timeSlot.getEndTime().isBefore(timeSlot.getStartTime())) {
+            throw new InvalidTimeSlotException("Time slot end time is before time slot start time.");
+        }
+        if (timeSlot.getDate().isBefore(nowDate)) {
+            throw new InvalidTimeSlotException("Time slot date is before time slot start date.");
+        }
+
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new DoctorNotFoundException("Doctor not found."));
+
+        if(timeSlotRepository.existsByDoctorIdAndDateAndStartTimeAndEndTime(doctorId, timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime())) {
+            throw new InvalidTimeSlotException("Time slot already exists.");
+        }
+
+        timeSlot.setDoctor(doctor);
+        timeSlot.setStatus(TimeSlotStatus.FREE);
+
+        return timeSlotRepository.save(timeSlot);
     }
 
     @Override

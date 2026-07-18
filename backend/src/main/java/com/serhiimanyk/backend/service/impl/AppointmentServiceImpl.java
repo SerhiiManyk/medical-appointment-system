@@ -124,6 +124,13 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public Appointment rescheduleAppointment(Long appointmentId, Long newTimeslotId) {
+
+        Appointment appointment = getAppointmentById(appointmentId);
+
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED || appointment.getStatus() == AppointmentStatus.COMPLETED) {
+            throw new AppointmentAlreadyFinishedException("Appointment is already cancelled or completed.");
+        }
+        //треба дописати!!!!!!!!
         return null;
     }
 }

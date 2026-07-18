@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface TimeSlotService {
 
-    TimeSlot createTimeSlot(TimeSlot timeSlot);
+    TimeSlot createTimeSlot(Long doctorId,TimeSlot timeSlot);
 
     TimeSlot getTimeSlotById(Long id);
 
