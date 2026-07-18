@@ -43,10 +43,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
                 .orElseThrow(() -> new TimeslotNotFoundException("Timeslot with id " + timeSlotId + " is not found"));
 
-        if (timeSlot.getStatus().equals(TimeSlotStatus.BOOKED)){
+        if (timeSlot.getStatus().equals(TimeSlotStatus.BOOKED)) {
             throw new TimeslotAlreadyBookedException("Timeslot " + timeSlotId + " is already booked.");
         }
-        if(!doctorId.equals(timeSlot.getDoctor().getId())) {
+        if (!doctorId.equals(timeSlot.getDoctor().getId())) {
             throw new TimeSlotDoesNotBelongToDoctorException("Doctor with id " + doctorId + " is not found.");
         }
         Appointment appointment = new Appointment();
@@ -76,7 +76,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public List<Appointment> getAppointmentsByDoctorId(Long id) {
 
-       doctorRepository.findById(id).orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + id + " is not found"));
+        doctorRepository.findById(id).orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + id + " is not found"));
 
         return appointmentRepository.findByDoctorId(id);
     }
@@ -95,12 +95,31 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public Appointment cancelAppointment(Long id) {
-        return null;
+
+        Appointment appointment = getAppointmentById(id);
+        TimeSlot timeSlot = appointment.getTimeSlot();
+
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED || appointment.getStatus() == AppointmentStatus.COMPLETED) {
+            throw new AppointmentAlreadyFinishedException("Appointment is already cancelled or completed.");
+        }
+
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+        timeSlot.setStatus(TimeSlotStatus.FREE);
+
+        return appointmentRepository.save(appointment);
     }
 
     @Override
     public Appointment completeAppointment(Long id) {
-        return null;
+        Appointment appointment = getAppointmentById(id);
+
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED || appointment.getStatus() == AppointmentStatus.COMPLETED) {
+            throw new AppointmentAlreadyFinishedException("Appointment is already cancelled or completed.");
+        }
+
+        appointment.setStatus(AppointmentStatus.COMPLETED);
+
+        return appointmentRepository.save(appointment);
     }
 
     @Override
