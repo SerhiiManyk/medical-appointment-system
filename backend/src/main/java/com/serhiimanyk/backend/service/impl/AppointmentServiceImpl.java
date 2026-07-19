@@ -43,11 +43,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
                 .orElseThrow(() -> new TimeslotNotFoundException("Timeslot with id " + timeSlotId + " is not found"));
 
-        if (timeSlot.getStatus().equals(TimeSlotStatus.BOOKED)) {
-            throw new TimeslotAlreadyBookedException("Timeslot " + timeSlotId + " is already booked.");
+        if (timeSlot.getStatus() != TimeSlotStatus.FREE) {
+            throw new InvalidTimeSlotException(
+                    "TimeSlot is not available.");
         }
         if (!doctorId.equals(timeSlot.getDoctor().getId())) {
-            throw new TimeSlotDoesNotBelongToDoctorException("Doctor with id " + doctorId + " is not found.");
+            throw new TimeSlotDoesNotBelongToDoctorException("TimeSlot with id " + timeSlotId + " does not belong to doctor with id " + doctorId);
         }
         Appointment appointment = new Appointment();
         appointment.setPatient(patient);
