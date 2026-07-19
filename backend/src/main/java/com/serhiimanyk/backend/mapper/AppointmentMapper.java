@@ -3,6 +3,8 @@ package com.serhiimanyk.backend.mapper;
 import com.serhiimanyk.backend.dto.response.AppointmentResponse;
 import com.serhiimanyk.backend.entity.Appointment;
 
+import java.util.List;
+
 public class AppointmentMapper {
 
     public AppointmentResponse toResponse(Appointment appointment) {
@@ -17,5 +19,13 @@ public class AppointmentMapper {
                 .endTime(appointment.getTimeSlot().getEndTime())
                 .status(appointment.getStatus())
                 .build();
+    }
+
+    public List<AppointmentResponse> toResponseList(
+            List<Appointment> appointments
+    ) {
+        return appointments.stream()
+                .map(this::toResponse)
+                .toList();
     }
 }
