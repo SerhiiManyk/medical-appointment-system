@@ -5,6 +5,7 @@ import com.serhiimanyk.backend.entity.TimeSlot;
 import com.serhiimanyk.backend.enums.TimeSlotStatus;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;
 import com.serhiimanyk.backend.exception.InvalidTimeSlotException;
+import com.serhiimanyk.backend.exception.TimeslotNotFoundException;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
 import com.serhiimanyk.backend.service.TimeSlotService;
@@ -39,7 +40,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new DoctorNotFoundException("Doctor not found."));
 
-        if(timeSlotRepository.existsByDoctorIdAndDateAndStartTimeAndEndTime(doctorId, timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime())) {
+        if (timeSlotRepository.existsByDoctorIdAndDateAndStartTimeAndEndTime(doctorId, timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime())) {
             throw new InvalidTimeSlotException("Time slot already exists.");
         }
 
@@ -51,12 +52,15 @@ public class TimeslotServiceImpl implements TimeSlotService {
 
     @Override
     public TimeSlot getTimeSlotById(Long id) {
-        return null;
+
+        return timeSlotRepository.findById(id).orElseThrow(() -> new TimeslotNotFoundException("Timeslot not found."));
     }
 
     @Override
     public List<TimeSlot> getAllTimeSlotsByDoctorId(Long doctorId) {
-        return List.of();
+
+        doctorRepository.findById(doctorId).orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + doctorId + " is not found."));
+        return timeSlotRepository.findAllByDoctorId(doctorId);
     }
 
     @Override
@@ -72,10 +76,26 @@ public class TimeslotServiceImpl implements TimeSlotService {
     @Override
     public void blockTimeSlot(Long timeSlotId) {
 
+        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId).orElseThrow(() -> new TimeslotNotFoundException("Timeslot not found."));
+        if (timeSlot.getStatus() == TimeSlotStatus.BLOCKED) {
+            throw new InvalidTimeSlotException("Timeslot is already blocked.");
+        } else if (timeSlot.getStatus() == TimeSlotStatus.BOOKED) {
+            throw new InvalidTimeSlotException("Cannot block booked time slot.");
+        } else if (timeSlot.getStatus() == TimeSlotStatus.FREE) {
+            timeSlot.setStatus(TimeSlotStatus.BLOCKED);
+        }
+
+        timeSlotRepository.save(timeSlot);
     }
 
     @Override
     public void deleteTimeSlot(Long id) {
 
+        TimeSlot timeSlot = timeSlotRepository.findById(id).orElseThrow(() -> new TimeslotNotFoundException("TimeSlot with id " + id + " is not found."));
+
+        if (timeSlot.getStatus() == TimeSlotStatus.BOOKED) {
+            throw new InvalidTimeSlotException("Cannot delete booked time slot.");
+        }
+        timeSlotRepository.delete(timeSlot);
     }
 }
