@@ -65,12 +65,24 @@ public class TimeslotServiceImpl implements TimeSlotService {
 
     @Override
     public List<TimeSlot> getAvailableTimeSlotsByDoctorId(Long doctorId) {
-        return List.of();
+
+        doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new DoctorNotFoundException(
+                        "Doctor with id " + doctorId + " is not found."));
+
+        return timeSlotRepository.findByDoctorIdAndStatus(
+                doctorId,
+                TimeSlotStatus.FREE
+        );
     }
 
     @Override
     public List<TimeSlot> getAvailableTimeSlotsByDate(LocalDate date) {
-        return List.of();
+
+        if (date.isBefore(LocalDate.now())) {
+            throw new InvalidTimeSlotException("Date cannot be in the past.");
+        }
+       return timeSlotRepository.findAllTimeSlotsByDateAndStatus(date, TimeSlotStatus.FREE);
     }
 
     @Override
