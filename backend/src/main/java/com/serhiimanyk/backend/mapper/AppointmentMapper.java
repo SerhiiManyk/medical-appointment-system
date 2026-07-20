@@ -2,9 +2,11 @@ package com.serhiimanyk.backend.mapper;
 
 import com.serhiimanyk.backend.dto.response.AppointmentResponse;
 import com.serhiimanyk.backend.entity.Appointment;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class AppointmentMapper {
 
     public AppointmentResponse toResponse(Appointment appointment) {
