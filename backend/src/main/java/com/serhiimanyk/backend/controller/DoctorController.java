@@ -7,10 +7,14 @@ import com.serhiimanyk.backend.mapper.DoctorMapper;
 import com.serhiimanyk.backend.service.DoctorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api/doctors")
@@ -21,12 +25,16 @@ public class DoctorController {
     private final DoctorMapper doctorMapper;
 
     @PostMapping
-    public DoctorResponse createDoctor( @Valid @RequestBody DoctorRequest doctorRequest) {
+    public ResponseEntity<DoctorResponse> createDoctor(@Valid @RequestBody DoctorRequest doctorRequest) {
 
         Doctor doctor = doctorMapper.toDoctor(doctorRequest);
 
-        doctorService.createDoctor(doctor);
+        Doctor resultDoctor = doctorService.createDoctor(doctor);
 
-        return doctorMapper.toDoctorResponse(doctor);
+        DoctorResponse response = doctorMapper.toDoctorResponse(resultDoctor);
+
+       URI uri =  ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(resultDoctor.getId()).toUri();
+
+        return ResponseEntity.created(uri).body(response);
     }
 }
