@@ -1,5 +1,6 @@
 package com.serhiimanyk.backend.service;
 
+import com.serhiimanyk.backend.dto.request.DoctorRequest;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.enums.Specialization;
 
@@ -17,7 +18,7 @@ public interface DoctorService {
 
     Doctor createDoctor(Doctor doctor);
 
-    Doctor updateDoctor(Doctor doctor);
+    Doctor updateDoctor(DoctorRequest request, Long id);
 
     void deleteDoctorById(Long id);
 

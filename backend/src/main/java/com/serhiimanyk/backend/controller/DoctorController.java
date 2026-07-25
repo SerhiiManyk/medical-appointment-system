@@ -55,4 +55,14 @@ public class DoctorController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<DoctorResponse> updateDoctor(@Valid @RequestBody DoctorRequest doctorRequest, @PathVariable Long id) {
+
+       Doctor doctor =  doctorService.updateDoctor(doctorRequest, id);
+
+        DoctorResponse response = doctorMapper.toDoctorResponse(doctor);
+
+        return ResponseEntity.ok(response);
+    }
 }

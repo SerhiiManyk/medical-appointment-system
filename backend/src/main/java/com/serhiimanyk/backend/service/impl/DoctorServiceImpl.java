@@ -1,9 +1,11 @@
 package com.serhiimanyk.backend.service.impl;
 
+import com.serhiimanyk.backend.dto.request.DoctorRequest;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.enums.Specialization;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;
 import com.serhiimanyk.backend.exception.EmailAlreadyExistsException;
+import com.serhiimanyk.backend.mapper.DoctorMapper;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.service.DoctorService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.List;
 public class DoctorServiceImpl implements DoctorService {
 
     private final DoctorRepository doctorRepository;
+    private final DoctorMapper doctorMapper;
 
     @Override
     public Doctor getDoctorByEmail(String email) {
@@ -48,36 +51,29 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     public Doctor createDoctor(Doctor doctor) {
 
-        if(doctorRepository.existsByEmail(doctor.getEmail())) {
+        if (doctorRepository.existsByEmail(doctor.getEmail())) {
             throw new EmailAlreadyExistsException("Doctor with email " + doctor.getEmail() + " already exists");
         }
         return doctorRepository.save(doctor);
     }
 
     @Override
-    public Doctor updateDoctor(Doctor doctor) {
+    public Doctor updateDoctor(DoctorRequest request, Long id) {
 
-        Doctor doctorToUpdate = getDoctorById(doctor.getId());
+        Doctor doctorToUpdate = getDoctorById(id);
 
-        doctorToUpdate.setFirstName(doctor.getFirstName());
-        doctorToUpdate.setLastName(doctor.getLastName());
-        doctorToUpdate.setSpecialization(doctor.getSpecialization());
-        doctorToUpdate.setPassword(doctor.getPassword());
-        doctorToUpdate.setPhoneNumber(doctor.getPhoneNumber());
-
-        if (!doctorToUpdate.getEmail().equals(doctor.getEmail())) {
+        if (!doctorToUpdate.getEmail().equals(request.getEmail())) {
 
             if (doctorRepository.existsByEmailAndIdNot(
-                    doctor.getEmail(),
-                    doctor.getId()
+                    request.getEmail(),
+                    id
             )) {
                 throw new EmailAlreadyExistsException(
-                        "Doctor with email " + doctor.getEmail() + " already exists"
+                        "Doctor with email " + request.getEmail() + " already exists"
                 );
             }
-
-            doctorToUpdate.setEmail(doctor.getEmail());
         }
+        doctorMapper.updateDoctorFromRequest(request, doctorToUpdate);
 
         return doctorRepository.save(doctorToUpdate);
     }

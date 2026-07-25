@@ -39,4 +39,14 @@ public class DoctorMapper {
 
         return doctor;
     }
+
+    public void updateDoctorFromRequest(DoctorRequest doctorRequest, Doctor doctor) {
+        doctor.setFirstName(doctorRequest.getFirstName());
+        doctor.setLastName(doctorRequest.getLastName());
+        doctor.setSpecialization(doctorRequest.getSpecialization());
+        doctor.setEmail(doctorRequest.getEmail());
+        doctor.setPassword(doctorRequest.getPassword());
+        doctor.setPhoneNumber(doctorRequest.getPhoneNumber());
+
+    }
 }
