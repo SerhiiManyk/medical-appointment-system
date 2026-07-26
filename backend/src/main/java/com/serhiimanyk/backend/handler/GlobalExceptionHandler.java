@@ -1,8 +1,7 @@
 package com.serhiimanyk.backend.handler;
 
 import com.serhiimanyk.backend.dto.response.ErrorResponse;
-import com.serhiimanyk.backend.exception.DoctorNotFoundException;
-import com.serhiimanyk.backend.exception.EmailAlreadyExistsException;
+import com.serhiimanyk.backend.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,4 +41,51 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
+
+    @ExceptionHandler(AppointmentAlreadyFinishedException.class)
+    public ResponseEntity<ErrorResponse> handleAppointmentAlreadyFinishedException(AppointmentAlreadyFinishedException exception,
+                                                                                   HttpServletRequest request) {
+
+        ErrorResponse response = buildErrorResponse(HttpStatus.BAD_REQUEST, exception.getMessage(), request);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(AppointmentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAppointmentNotFoundException(AppointmentNotFoundException exception,
+                                                                            HttpServletRequest request) {
+
+        ErrorResponse response = buildErrorResponse(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(InvalidTimeSlotException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidTimeSlotException(InvalidTimeSlotException exception,
+                                                                            HttpServletRequest request) {
+
+        ErrorResponse response = buildErrorResponse(HttpStatus.BAD_REQUEST, exception.getMessage(), request);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(PatientNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePatientNotFoundException(PatientNotFoundException exception,
+                                                                        HttpServletRequest request) {
+
+        ErrorResponse response = buildErrorResponse(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(TimeslotAlreadyBookedException.class)
+    public ResponseEntity<ErrorResponse> handleTimeslotAlreadyBookedException(TimeslotAlreadyBookedException exception,
+                                                                        HttpServletRequest request) {
+
+        ErrorResponse response = buildErrorResponse(HttpStatus.CONFLICT, exception.getMessage(), request);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+
 }
