@@ -5,7 +5,7 @@ import com.serhiimanyk.backend.entity.TimeSlot;
 import com.serhiimanyk.backend.enums.TimeSlotStatus;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;
 import com.serhiimanyk.backend.exception.InvalidTimeSlotException;
-import com.serhiimanyk.backend.exception.TimeslotNotFoundException;
+import com.serhiimanyk.backend.exception.TimeSlotNotFoundException;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
 import com.serhiimanyk.backend.service.TimeSlotService;
@@ -53,7 +53,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
     @Override
     public TimeSlot getTimeSlotById(Long id) {
 
-        return timeSlotRepository.findById(id).orElseThrow(() -> new TimeslotNotFoundException("Timeslot not found."));
+        return timeSlotRepository.findById(id).orElseThrow(() -> new TimeSlotNotFoundException("Timeslot not found."));
     }
 
     @Override
@@ -88,7 +88,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
     @Override
     public void blockTimeSlot(Long timeSlotId) {
 
-        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId).orElseThrow(() -> new TimeslotNotFoundException("Timeslot not found."));
+        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId).orElseThrow(() -> new TimeSlotNotFoundException("Timeslot not found."));
         if (timeSlot.getStatus() == TimeSlotStatus.BLOCKED) {
             throw new InvalidTimeSlotException("Timeslot is already blocked.");
         } else if (timeSlot.getStatus() == TimeSlotStatus.BOOKED) {
@@ -103,7 +103,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
     @Override
     public void deleteTimeSlot(Long id) {
 
-        TimeSlot timeSlot = timeSlotRepository.findById(id).orElseThrow(() -> new TimeslotNotFoundException("TimeSlot with id " + id + " is not found."));
+        TimeSlot timeSlot = timeSlotRepository.findById(id).orElseThrow(() -> new TimeSlotNotFoundException("TimeSlot with id " + id + " is not found."));
 
         if (timeSlot.getStatus() == TimeSlotStatus.BOOKED) {
             throw new InvalidTimeSlotException("Cannot delete booked time slot.");

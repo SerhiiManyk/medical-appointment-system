@@ -78,14 +78,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @ExceptionHandler(TimeslotAlreadyBookedException.class)
-    public ResponseEntity<ErrorResponse> handleTimeslotAlreadyBookedException(TimeslotAlreadyBookedException exception,
-                                                                        HttpServletRequest request) {
+    @ExceptionHandler(TimeSlotAlreadyBookedException.class)
+    public ResponseEntity<ErrorResponse> handleTimeslotAlreadyBookedException(TimeSlotAlreadyBookedException exception,
+                                                                              HttpServletRequest request) {
 
         ErrorResponse response = buildErrorResponse(HttpStatus.CONFLICT, exception.getMessage(), request);
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
+    @ExceptionHandler(TimeSlotDoesNotBelongToDoctorException.class)
+    public ResponseEntity<ErrorResponse> handleTimeSlotDoesNotBelongToDoctorException(TimeSlotDoesNotBelongToDoctorException exception,
+                                                                              HttpServletRequest request) {
 
+        ErrorResponse response = buildErrorResponse(HttpStatus.BAD_REQUEST, exception.getMessage(), request);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(TimeSlotNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTimeslotNotFoundException(TimeSlotNotFoundException exception,
+                                                                         HttpServletRequest request) {
+
+        ErrorResponse response = buildErrorResponse(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
 }

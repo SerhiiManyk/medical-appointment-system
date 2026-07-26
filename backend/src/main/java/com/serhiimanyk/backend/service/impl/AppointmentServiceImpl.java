@@ -41,7 +41,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + doctorId + " is not found"));
 
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
-                .orElseThrow(() -> new TimeslotNotFoundException("Timeslot with id " + timeSlotId + " is not found"));
+                .orElseThrow(() -> new TimeSlotNotFoundException("Timeslot with id " + timeSlotId + " is not found"));
 
         if (timeSlot.getStatus() != TimeSlotStatus.FREE) {
             throw new InvalidTimeSlotException(
