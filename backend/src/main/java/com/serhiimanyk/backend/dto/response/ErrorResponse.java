@@ -16,6 +16,8 @@ public class ErrorResponse {
 
     private HttpStatus status;
 
+    private Integer code;
+
     private String message;
 
     private String path;
