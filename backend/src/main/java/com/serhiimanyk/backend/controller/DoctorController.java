@@ -31,7 +31,7 @@ public class DoctorController {
 
         DoctorResponse response = doctorMapper.toDoctorResponse(resultDoctor);
 
-       URI uri =  ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(resultDoctor.getId()).toUri();
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(resultDoctor.getId()).toUri();
 
         return ResponseEntity.created(uri).body(response);
     }
@@ -46,7 +46,7 @@ public class DoctorController {
         return ResponseEntity.ok(resultList);
     }
 
-    @GetMapping ("/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<DoctorResponse> getDoctorById(@PathVariable Long id) {
 
         Doctor doctor = doctorService.getDoctorById(id);
@@ -59,10 +59,18 @@ public class DoctorController {
     @PutMapping("/{id}")
     public ResponseEntity<DoctorResponse> updateDoctor(@Valid @RequestBody DoctorRequest doctorRequest, @PathVariable Long id) {
 
-       Doctor doctor =  doctorService.updateDoctor(doctorRequest, id);
+        Doctor doctor = doctorService.updateDoctor(doctorRequest, id);
 
         DoctorResponse response = doctorMapper.toDoctorResponse(doctor);
 
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDoctorById(@PathVariable Long id) {
+
+        doctorService.deleteDoctorById(id);
+
+        return ResponseEntity.noContent().build();
     }
 }
