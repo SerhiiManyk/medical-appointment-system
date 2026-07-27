@@ -1,6 +1,6 @@
 package com.serhiimanyk.backend.controller;
 
-import com.serhiimanyk.backend.dto.request.CreateAppointmentRequest;
+import com.serhiimanyk.backend.dto.request.AppointmentCreateRequest;
 import com.serhiimanyk.backend.dto.response.AppointmentResponse;
 import com.serhiimanyk.backend.entity.Appointment;
 import com.serhiimanyk.backend.mapper.AppointmentMapper;
@@ -20,7 +20,7 @@ public class AppointmentController {
 
     @PostMapping
     public AppointmentResponse createAppointment(
-            @RequestBody CreateAppointmentRequest request
+            @RequestBody AppointmentCreateRequest request
     ) {
 
         Appointment appointment = appointmentService.createAppointment(
