@@ -1,8 +1,10 @@
 package com.serhiimanyk.backend.service.impl;
 
+import com.serhiimanyk.backend.dto.request.PatientRequest;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.exception.EmailAlreadyExistsException;
 import com.serhiimanyk.backend.exception.PatientNotFoundException;
+import com.serhiimanyk.backend.mapper.PatientMapper;
 import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.service.PatientService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import java.util.List;
 public class PatientServiceImpl implements PatientService {
 
     private final PatientRepository patientRepository;
+    private final PatientMapper patientMapper;
 
     @Override
     public Patient getPatientByEmail(String email) {
@@ -47,31 +50,23 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public Patient updatePatient(Patient patient) {
+    public Patient updatePatient(PatientRequest request, Long id) {
 
+        Patient patientToUpdate = getPatientById(id);
 
-        Patient patientToUpdate = getPatientById(patient.getId());
-
-        patientToUpdate.setFirstName(patient.getFirstName());
-        patientToUpdate.setLastName(patient.getLastName());
-        patientToUpdate.setPassword(patient.getPassword());
-        patientToUpdate.setPhoneNumber(patient.getPhoneNumber());
-        patientToUpdate.setGender(patient.getGender());
-        patientToUpdate.setDateOfBirth(patient.getDateOfBirth());
-
-        if (!patientToUpdate.getEmail().equals(patient.getEmail())) {
+        if (!patientToUpdate.getEmail().equals(request.getEmail())) {
 
             if (patientRepository.existsByEmailAndIdNot(
-                    patient.getEmail(),
-                    patient.getId()
+                    request.getEmail(),
+                    id
             )) {
                 throw new EmailAlreadyExistsException(
-                        "Patient with email " + patient.getEmail() + " already exists"
+                        "Patient with email " + request.getEmail() + " already exists"
                 );
             }
 
-            patientToUpdate.setEmail(patient.getEmail());
         }
+        patientMapper.updatePatientFromRequest(request, patientToUpdate);
 
         return patientRepository.save(patientToUpdate);
     }
