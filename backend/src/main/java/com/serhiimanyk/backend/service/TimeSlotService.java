@@ -9,7 +9,7 @@ public interface TimeSlotService {
 
     TimeSlot createTimeSlot(Long doctorId,TimeSlot timeSlot);
 
-    TimeSlot getTimeSlotById(Long id);
+    TimeSlot getTimeSlotById(Long doctorId, Long id);
 
     List<TimeSlot> getAllTimeSlotsByDoctorId(Long doctorId);
 
@@ -19,6 +19,6 @@ public interface TimeSlotService {
 
     void blockTimeSlot(Long timeSlotId);
 
-    void deleteTimeSlot(Long id);
+    void deleteTimeSlot(Long doctorId, Long id);
 
 }

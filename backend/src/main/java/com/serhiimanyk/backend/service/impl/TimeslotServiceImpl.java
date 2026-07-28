@@ -51,7 +51,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
     }
 
     @Override
-    public TimeSlot getTimeSlotById(Long id) {
+    public TimeSlot getTimeSlotById(Long doctorId,Long id) {
 
         return timeSlotRepository.findById(id).orElseThrow(() -> new TimeSlotNotFoundException("Timeslot not found."));
     }
@@ -101,7 +101,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
     }
 
     @Override
-    public void deleteTimeSlot(Long id) {
+    public void deleteTimeSlot(Long doctorId, Long id) {
 
         TimeSlot timeSlot = timeSlotRepository.findById(id).orElseThrow(() -> new TimeSlotNotFoundException("TimeSlot with id " + id + " is not found."));
 
