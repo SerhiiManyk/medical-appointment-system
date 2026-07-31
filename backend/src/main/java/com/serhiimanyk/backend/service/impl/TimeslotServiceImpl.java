@@ -87,7 +87,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
         if (date.isBefore(LocalDate.now())) {
             throw new InvalidTimeSlotException("Date cannot be in the past.");
         }
-        return timeSlotRepository.findAllTimeSlotsByDateAndStatusAndDoctorId(doctorId, TimeSlotStatus.FREE, date);
+        return timeSlotRepository.findAllByDoctorIdAndDateAndStatus(doctorId,  date, TimeSlotStatus.FREE);
     }
 
     @Override

@@ -16,5 +16,5 @@ public interface TimeSlotRepository extends JpaRepository<TimeSlot, Long> {
 
     List<TimeSlot> findByDoctorIdAndStatus(Long doctorId, TimeSlotStatus status);
 
-    List<TimeSlot> findAllTimeSlotsByDateAndStatusAndDoctorId( Long doctorId, TimeSlotStatus status, LocalDate date);
+    List<TimeSlot> findAllByDoctorIdAndDateAndStatus(Long doctorId, LocalDate date, TimeSlotStatus status);
 }

@@ -67,7 +67,7 @@ public class TimeSlotController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/available")
+    @GetMapping("/available/by-date")
     public ResponseEntity<List<TimeSlotResponse>> getAvailableTimeSlotsByDoctorId(
             @PathVariable Long doctorId,
             @RequestParam LocalDate date) {
