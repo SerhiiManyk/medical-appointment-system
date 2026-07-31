@@ -15,9 +15,9 @@ public interface TimeSlotService {
 
     List<TimeSlot> getAvailableTimeSlotsByDoctorId(Long doctorId);
 
-    List<TimeSlot> getAvailableTimeSlotsByDate(LocalDate date);
+    List<TimeSlot> getAvailableTimeSlotsByDateAndDoctorId( Long doctorId, LocalDate date);
 
-    void blockTimeSlot(Long timeSlotId);
+    TimeSlot blockTimeSlot(Long doctorId, Long timeSlotId);
 
     void deleteTimeSlot(Long doctorId, Long id);
 

@@ -5,6 +5,7 @@ import com.serhiimanyk.backend.entity.TimeSlot;
 import com.serhiimanyk.backend.enums.TimeSlotStatus;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;
 import com.serhiimanyk.backend.exception.InvalidTimeSlotException;
+import com.serhiimanyk.backend.exception.TimeSlotDoesNotBelongToDoctorException;
 import com.serhiimanyk.backend.exception.TimeSlotNotFoundException;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
@@ -51,7 +52,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
     }
 
     @Override
-    public TimeSlot getTimeSlotById(Long doctorId,Long id) {
+    public TimeSlot getTimeSlotById(Long doctorId, Long id) {
 
         return timeSlotRepository.findById(id).orElseThrow(() -> new TimeSlotNotFoundException("Timeslot not found."));
     }
@@ -77,18 +78,26 @@ public class TimeslotServiceImpl implements TimeSlotService {
     }
 
     @Override
-    public List<TimeSlot> getAvailableTimeSlotsByDate(LocalDate date) {
+    public List<TimeSlot> getAvailableTimeSlotsByDateAndDoctorId(Long doctorId, LocalDate date) {
+
+        doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new DoctorNotFoundException(
+                        "Doctor with id " + doctorId + " is not found."));
 
         if (date.isBefore(LocalDate.now())) {
             throw new InvalidTimeSlotException("Date cannot be in the past.");
         }
-       return timeSlotRepository.findAllTimeSlotsByDateAndStatus(date, TimeSlotStatus.FREE);
+        return timeSlotRepository.findAllTimeSlotsByDateAndStatusAndDoctorId(doctorId, TimeSlotStatus.FREE, date);
     }
 
     @Override
-    public void blockTimeSlot(Long timeSlotId) {
+    public TimeSlot blockTimeSlot(Long doctorId, Long timeSlotId) {
 
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId).orElseThrow(() -> new TimeSlotNotFoundException("Timeslot not found."));
+
+        if(!timeSlot.getDoctor().getId().equals(doctorId)) {
+            throw new TimeSlotDoesNotBelongToDoctorException("Timeslot with id " + timeSlotId + " does not belong to doctor with id " + doctorId);
+        }
         if (timeSlot.getStatus() == TimeSlotStatus.BLOCKED) {
             throw new InvalidTimeSlotException("Timeslot is already blocked.");
         } else if (timeSlot.getStatus() == TimeSlotStatus.BOOKED) {
@@ -97,7 +106,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
             timeSlot.setStatus(TimeSlotStatus.BLOCKED);
         }
 
-        timeSlotRepository.save(timeSlot);
+        return timeSlotRepository.save(timeSlot);
     }
 
     @Override

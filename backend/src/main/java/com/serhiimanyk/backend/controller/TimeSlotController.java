@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -37,7 +38,7 @@ public class TimeSlotController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TimeSlotResponse>> getAllTimeSlotsByDoctorId(@PathVariable Long doctorId){
+    public ResponseEntity<List<TimeSlotResponse>> getAllTimeSlotsByDoctorId(@PathVariable Long doctorId) {
 
         List<TimeSlot> timeSlotList = timeSlotService.getAllTimeSlotsByDoctorId(doctorId);
 
@@ -47,7 +48,7 @@ public class TimeSlotController {
     }
 
     @GetMapping("/available")
-    public ResponseEntity<List<TimeSlotResponse>> getAvailableTimeSlotsByDoctorId(@PathVariable Long doctorId){
+    public ResponseEntity<List<TimeSlotResponse>> getAvailableTimeSlotsByDoctorId(@PathVariable Long doctorId) {
 
         List<TimeSlot> timeSlotList = timeSlotService.getAvailableTimeSlotsByDoctorId(doctorId);
 
@@ -56,8 +57,8 @@ public class TimeSlotController {
         return ResponseEntity.ok(resultList);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<TimeSlotResponse> getTimeSlotById(@PathVariable Long doctorId, @PathVariable Long timeSlotId){
+    @GetMapping("/{timeSlotId}")
+    public ResponseEntity<TimeSlotResponse> getTimeSlotById(@PathVariable Long doctorId, @PathVariable Long timeSlotId) {
 
         TimeSlot timeSlot = timeSlotService.getTimeSlotById(doctorId, timeSlotId);
 
@@ -66,11 +67,35 @@ public class TimeSlotController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTimeSlotById(@PathVariable Long doctorId,@PathVariable Long timeSlotId){
+    @GetMapping("/available")
+    public ResponseEntity<List<TimeSlotResponse>> getAvailableTimeSlotsByDoctorId(
+            @PathVariable Long doctorId,
+            @RequestParam LocalDate date) {
+
+        List<TimeSlot> resultList = timeSlotService.getAvailableTimeSlotsByDateAndDoctorId(doctorId, date);
+
+        List<TimeSlotResponse> response = timeSlotMapper.toTimeSlotResponseList(resultList);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{timeSlotId}")
+    public ResponseEntity<Void> deleteTimeSlotById(@PathVariable Long doctorId, @PathVariable Long timeSlotId) {
 
         timeSlotService.deleteTimeSlot(doctorId, timeSlotId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{timeSlotId}/block")
+    public ResponseEntity<TimeSlotResponse> blockTimeSlot(
+            @PathVariable Long doctorId,
+            @PathVariable Long timeSlotId) {
+
+        TimeSlot result = timeSlotService.blockTimeSlot(doctorId, timeSlotId);
+
+        TimeSlotResponse response = timeSlotMapper.toTimeSlotResponse(result);
+
+        return ResponseEntity.ok(response);
     }
 }
