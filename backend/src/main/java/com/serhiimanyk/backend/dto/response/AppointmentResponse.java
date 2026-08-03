@@ -1,6 +1,7 @@
 package com.serhiimanyk.backend.dto.response;
 
 import com.serhiimanyk.backend.enums.AppointmentStatus;
+import com.serhiimanyk.backend.enums.Specialization;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,8 +15,13 @@ public class AppointmentResponse {
     private Long id;
 
     private Long patientId;
+    private String patientFirstName;
+    private String patientLastName;
 
     private Long doctorId;
+    private String doctorFirstName;
+    private String doctorLastName;
+    private Specialization specialization;
 
     private Long timeSlotId;
 
@@ -26,4 +32,6 @@ public class AppointmentResponse {
     private LocalTime endTime;
 
     private AppointmentStatus status;
+
+    private String comment;
 }

@@ -18,13 +18,24 @@ public class AppointmentMapper {
 
         return AppointmentResponse.builder()
                 .id(appointment.getId())
+
                 .patientId(appointment.getPatient().getId())
+                .patientFirstName(appointment.getPatient().getFirstName())
+                .patientLastName(appointment.getPatient().getLastName())
+
                 .doctorId(appointment.getDoctor().getId())
+                .doctorFirstName(appointment.getDoctor().getFirstName())
+                .doctorLastName(appointment.getDoctor().getLastName())
+                .specialization(appointment.getDoctor().getSpecialization())
+
                 .timeSlotId(appointment.getTimeSlot().getId())
                 .date(appointment.getTimeSlot().getDate())
                 .startTime(appointment.getTimeSlot().getStartTime())
                 .endTime(appointment.getTimeSlot().getEndTime())
+
                 .status(appointment.getStatus())
+                .comment(appointment.getComment())
+
                 .build();
     }
 
