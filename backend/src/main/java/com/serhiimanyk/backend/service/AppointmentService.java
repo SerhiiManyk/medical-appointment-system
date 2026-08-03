@@ -1,12 +1,13 @@
 package com.serhiimanyk.backend.service;
 
+import com.serhiimanyk.backend.dto.request.AppointmentCreateRequest;
 import com.serhiimanyk.backend.entity.Appointment;
 
 import java.util.List;
 
 public interface AppointmentService {
 
-    Appointment createAppointment(Long patientId, Long doctorId, Long timeSlotId);
+    Appointment createAppointment(AppointmentCreateRequest request);
 
     Appointment getAppointmentById(Long id);
 

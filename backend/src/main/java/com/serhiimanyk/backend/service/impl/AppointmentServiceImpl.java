@@ -1,5 +1,6 @@
 package com.serhiimanyk.backend.service.impl;
 
+import com.serhiimanyk.backend.dto.request.AppointmentCreateRequest;
 import com.serhiimanyk.backend.entity.Appointment;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.Patient;
@@ -32,29 +33,30 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentRepository appointmentRepository;
 
     @Override
-    public Appointment createAppointment(Long patientId, Long doctorId, Long timeSlotId) {
+    public Appointment createAppointment(AppointmentCreateRequest request) {
 
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new PatientNotFoundException("Patient with id " + patientId + " is not found"));
+        Patient patient = patientRepository.findById(request.getPatientId())
+                .orElseThrow(() -> new PatientNotFoundException("Patient with id " + request.getPatientId() + " is not found"));
 
-        Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + doctorId + " is not found"));
+        Doctor doctor = doctorRepository.findById(request.getDoctorId())
+                .orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + request.getDoctorId() + " is not found"));
 
-        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
-                .orElseThrow(() -> new TimeSlotNotFoundException("Timeslot with id " + timeSlotId + " is not found"));
+        TimeSlot timeSlot = timeSlotRepository.findById(request.getTimeSlotId())
+                .orElseThrow(() -> new TimeSlotNotFoundException("Timeslot with id " + request.getTimeSlotId() + " is not found"));
 
         if (timeSlot.getStatus() != TimeSlotStatus.FREE) {
             throw new InvalidTimeSlotException(
                     "TimeSlot is not available.");
         }
-        if (!doctorId.equals(timeSlot.getDoctor().getId())) {
-            throw new TimeSlotDoesNotBelongToDoctorException("TimeSlot with id " + timeSlotId + " does not belong to doctor with id " + doctorId);
+        if (!request.getDoctorId().equals(timeSlot.getDoctor().getId())) {
+            throw new TimeSlotDoesNotBelongToDoctorException(
+                    "TimeSlot with id " + request.getTimeSlotId() + " does not belong to doctor with id " + request.getDoctorId());
         }
         Appointment appointment = new Appointment();
         appointment.setPatient(patient);
         appointment.setDoctor(doctor);
         appointment.setTimeSlot(timeSlot);
-        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        appointment.setStatus(AppointmentStatus.CREATED);
         timeSlot.setStatus(TimeSlotStatus.BOOKED);
         return appointmentRepository.save(appointment);
     }

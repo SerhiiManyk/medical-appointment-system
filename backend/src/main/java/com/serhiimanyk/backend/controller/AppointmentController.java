@@ -23,11 +23,7 @@ public class AppointmentController {
             @RequestBody AppointmentCreateRequest request
     ) {
 
-        Appointment appointment = appointmentService.createAppointment(
-                request.getPatientId(),
-                request.getDoctorId(),
-                request.getTimeSlotId()
-        );
+        Appointment appointment = appointmentService.createAppointment(request);
 
         return appointmentMapper.toResponse(appointment);
     }
@@ -41,17 +37,17 @@ public class AppointmentController {
     }
 
     @GetMapping("/patient/{patientId}")
-    public List<AppointmentResponse> getAppointmentsByPatientId(@PathVariable Long patientId){
+    public List<AppointmentResponse> getAppointmentsByPatientId(@PathVariable Long patientId) {
 
-        List <Appointment> appointmentList = appointmentService.getAppointmentsByPatientId(patientId);
+        List<Appointment> appointmentList = appointmentService.getAppointmentsByPatientId(patientId);
 
         return appointmentMapper.toResponseList(appointmentList);
     }
 
     @GetMapping("/doctor/{doctorId}")
-    public List<AppointmentResponse> getAppointmentsByDoctorId(@PathVariable Long doctorId){
+    public List<AppointmentResponse> getAppointmentsByDoctorId(@PathVariable Long doctorId) {
 
-        List <Appointment> appointmentList = appointmentService.getAppointmentsByDoctorId(doctorId);
+        List<Appointment> appointmentList = appointmentService.getAppointmentsByDoctorId(doctorId);
 
         return appointmentMapper.toResponseList(appointmentList);
     }
