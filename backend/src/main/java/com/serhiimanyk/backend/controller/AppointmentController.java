@@ -5,9 +5,13 @@ import com.serhiimanyk.backend.dto.response.AppointmentResponse;
 import com.serhiimanyk.backend.entity.Appointment;
 import com.serhiimanyk.backend.mapper.AppointmentMapper;
 import com.serhiimanyk.backend.service.AppointmentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -19,37 +23,47 @@ public class AppointmentController {
     private final AppointmentMapper appointmentMapper;
 
     @PostMapping
-    public AppointmentResponse createAppointment(
-            @RequestBody AppointmentCreateRequest request
+    public ResponseEntity<AppointmentResponse> createAppointment(
+            @Valid @RequestBody AppointmentCreateRequest request
     ) {
 
         Appointment appointment = appointmentService.createAppointment(request);
 
-        return appointmentMapper.toResponse(appointment);
+        AppointmentResponse response = appointmentMapper.toResponse(appointment);
+
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(appointment.getId()).toUri();
+
+        return ResponseEntity.created(uri).body(response);
     }
 
     @GetMapping("/{id}")
-    public AppointmentResponse getAppointmentById(@PathVariable Long id) {
+    public ResponseEntity<AppointmentResponse> getAppointmentById(@PathVariable Long id) {
 
         Appointment appointment = appointmentService.getAppointmentById(id);
 
-        return appointmentMapper.toResponse(appointment);
+        AppointmentResponse response = appointmentMapper.toResponse(appointment);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/patient/{patientId}")
-    public List<AppointmentResponse> getAppointmentsByPatientId(@PathVariable Long patientId) {
+    public ResponseEntity<List<AppointmentResponse>> getAppointmentsByPatientId(@PathVariable Long patientId) {
 
         List<Appointment> appointmentList = appointmentService.getAppointmentsByPatientId(patientId);
 
-        return appointmentMapper.toResponseList(appointmentList);
+        List<AppointmentResponse> resultList = appointmentMapper.toResponseList(appointmentList);
+
+        return ResponseEntity.ok(resultList);
     }
 
     @GetMapping("/doctor/{doctorId}")
-    public List<AppointmentResponse> getAppointmentsByDoctorId(@PathVariable Long doctorId) {
+    public ResponseEntity<List<AppointmentResponse>> getAppointmentsByDoctorId(@PathVariable Long doctorId) {
 
         List<Appointment> appointmentList = appointmentService.getAppointmentsByDoctorId(doctorId);
 
-        return appointmentMapper.toResponseList(appointmentList);
+        List<AppointmentResponse> resultList = appointmentMapper.toResponseList(appointmentList);
+
+        return ResponseEntity.ok(resultList);
     }
 
 //    PUT /api/appointments/{id}/cancel
