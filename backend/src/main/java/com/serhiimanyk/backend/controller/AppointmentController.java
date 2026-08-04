@@ -66,11 +66,33 @@ public class AppointmentController {
         return ResponseEntity.ok(resultList);
     }
 
-//    PUT /api/appointments/{id}/cancel
-//    PUT /api/appointments/{id}/complete
-//    PUT /api/appointments/{id}/reschedule
-//    DELETE /api/appointments/{id}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAppointmentById(@PathVariable Long id) {
 
+        appointmentService.deleteAppointmentById(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<AppointmentResponse> cancelAppointmentById(@PathVariable Long id) {
+
+        Appointment canceledAppointment = appointmentService.cancelAppointment(id);
+
+        AppointmentResponse response = appointmentMapper.toResponse(canceledAppointment);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<AppointmentResponse> completeAppointmentById(@PathVariable Long id) {
+
+        Appointment completedAppointment = appointmentService.completeAppointment(id);
+
+        AppointmentResponse response = appointmentMapper.toResponse(completedAppointment);
+
+        return ResponseEntity.ok(response);
+    }
 }
 
 

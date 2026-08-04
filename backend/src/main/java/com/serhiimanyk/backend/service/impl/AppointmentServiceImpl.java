@@ -133,7 +133,28 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (appointment.getStatus() == AppointmentStatus.CANCELLED || appointment.getStatus() == AppointmentStatus.COMPLETED) {
             throw new AppointmentAlreadyFinishedException("Appointment is already cancelled or completed.");
         }
-        //треба дописати!!!!!!!!
-        return null;
+
+        TimeSlot newTimeSlot = timeSlotRepository.findById(newTimeslotId)
+                .orElseThrow(() -> new TimeSlotNotFoundException("Time slot with id " + newTimeslotId + " not found"));
+
+        if (newTimeSlot.getStatus() != TimeSlotStatus.FREE) {
+            throw new InvalidTimeSlotException(
+                    "TimeSlot is not available.");
+        }
+
+        if (!appointment.getDoctor().getId().equals(newTimeSlot.getDoctor().getId())) {
+            throw new TimeSlotDoesNotBelongToDoctorException(
+                    "TimeSlot with id" + newTimeSlot.getId() + " does not belong to doctor with id " + appointment.getDoctor().getId());
+        }
+
+        if (appointment.getTimeSlot().getId().equals(newTimeSlot.getId())) {
+            throw new InvalidTimeSlotException("Timeslot with id " + newTimeSlot.getId() + " is already in progress.");
+        }
+
+        appointment.getTimeSlot().setStatus(TimeSlotStatus.FREE);
+        newTimeSlot.setStatus(TimeSlotStatus.BOOKED);
+        appointment.setTimeSlot(newTimeSlot);
+
+        return  appointmentRepository.save(appointment);
     }
 }
