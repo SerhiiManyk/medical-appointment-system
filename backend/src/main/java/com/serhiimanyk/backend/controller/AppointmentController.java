@@ -93,6 +93,21 @@ public class AppointmentController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{appointmentId}/reschedule")
+    public ResponseEntity<AppointmentResponse> rescheduleAppointment(
+            @PathVariable Long appointmentId,
+            @RequestParam Long timeSlotId
+    ) {
+        Appointment appointment = appointmentService.rescheduleAppointment(
+                appointmentId,
+                timeSlotId
+        );
+
+        AppointmentResponse response = appointmentMapper.toResponse(appointment);
+
+        return ResponseEntity.ok(response);
+    }
 }
 
 
