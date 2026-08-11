@@ -7,6 +7,7 @@ import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.entity.TimeSlot;
 import com.serhiimanyk.backend.enums.AppointmentStatus;
 import com.serhiimanyk.backend.enums.TimeSlotStatus;
+import com.serhiimanyk.backend.exception.*;
 import com.serhiimanyk.backend.repository.*;
 import com.serhiimanyk.backend.service.impl.AppointmentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -95,7 +97,7 @@ class AppointmentServiceImplTest {
         assertEquals(expectedAppointment.getDoctor(), actualAppointment.getDoctor());
         assertEquals(expectedAppointment.getTimeSlot(), actualAppointment.getTimeSlot());
         assertEquals(expectedAppointment.getStatus(), actualAppointment.getStatus());
-        assertEquals(TimeSlotStatus.BOOKED,actualAppointment.getTimeSlot().getStatus());
+        assertEquals(TimeSlotStatus.BOOKED, actualAppointment.getTimeSlot().getStatus());
 
         verify(patientRepository).findById(patient.getId());
         verify(doctorRepository).findById(doctor.getId());
@@ -106,27 +108,119 @@ class AppointmentServiceImplTest {
     @Test
     public void createAppointment_shouldThrowException_whenPatientNotFound() {
 
+        request = new AppointmentCreateRequest();
+        request.setPatientId(10000L);
+        request.setDoctorId(doctor.getId());
+        request.setTimeSlotId(timeSlot.getId());
+
+        when(patientRepository.findById(10000L)).thenReturn(Optional.empty());
+
+        PatientNotFoundException exception = assertThrows(
+                PatientNotFoundException.class,
+                () -> appointmentService.createAppointment(request)
+        );
+
+        assertEquals("Patient with id 10000 is not found", exception.getMessage());
+        verify(patientRepository, times(1)).findById(10000L);
+        verifyNoInteractions(doctorRepository, timeSlotRepository, appointmentRepository);
     }
 
     @Test
     public void createAppointment_shouldThrowException_whenDoctorNotFound() {
 
+        request = new AppointmentCreateRequest();
+        request.setPatientId(patient.getId());
+        request.setDoctorId(10000L);
+        request.setTimeSlotId(timeSlot.getId());
+
+        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
+        when(doctorRepository.findById(10000L)).thenReturn(Optional.empty());
+
+        DoctorNotFoundException exception = assertThrows(
+                DoctorNotFoundException.class,
+                () -> appointmentService.createAppointment(request)
+        );
+
+        assertEquals("Doctor with id 10000 is not found", exception.getMessage());
+        verify(patientRepository, times(1)).findById(patient.getId());
+        verify(doctorRepository, times(1)).findById(10000L);
+        verifyNoInteractions(timeSlotRepository, appointmentRepository);
     }
 
     @Test
     public void createAppointment_shouldThrowException_whenTimeSlotNotFound() {
 
+        request = new AppointmentCreateRequest();
+        request.setPatientId(patient.getId());
+        request.setDoctorId(doctor.getId());
+        request.setTimeSlotId(10000L);
+
+        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
+        when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
+        when(timeSlotRepository.findById(10000L)).thenReturn(Optional.empty());
+
+        TimeSlotNotFoundException exception = assertThrows(
+                TimeSlotNotFoundException.class,
+                () -> appointmentService.createAppointment(request)
+        );
+
+        assertEquals("Timeslot with id 10000 is not found", exception.getMessage());
+        verify(patientRepository, times(1)).findById(patient.getId());
+        verify(doctorRepository, times(1)).findById(doctor.getId());
+        verify(timeSlotRepository, times(1)).findById(10000L);
+        verifyNoInteractions(appointmentRepository);
     }
 
     @Test
     public void createAppointment_shouldThrowException_whenTimeSlotIsNotFree() {
 
+        request = new AppointmentCreateRequest();
+        request.setPatientId(patient.getId());
+        request.setDoctorId(doctor.getId());
+        request.setTimeSlotId(timeSlot.getId());
+
+        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
+        when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
+        when(timeSlotRepository.findById(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
+        timeSlot.setStatus(TimeSlotStatus.BOOKED);
+
+        InvalidTimeSlotException exception = assertThrows(
+                InvalidTimeSlotException.class,
+                () -> appointmentService.createAppointment(request)
+        );
+
+        assertEquals("TimeSlot is not available.", exception.getMessage());
+        verify(patientRepository, times(1)).findById(patient.getId());
+        verify(doctorRepository, times(1)).findById(doctor.getId());
+        verify(timeSlotRepository, times(1)).findById(timeSlot.getId());
+        verifyNoInteractions(appointmentRepository);
     }
 
     @Test
     public void createAppointment_shouldThrowException_whenTimeSlotDoesNotBelongToDoctor() {
 
+        Doctor testDoctor = new Doctor();
+        testDoctor.setId(10000L);
+
+        request = new AppointmentCreateRequest();
+        request.setPatientId(patient.getId());
+        request.setDoctorId(doctor.getId());
+        request.setTimeSlotId(timeSlot.getId());
+
+        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
+        when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
+        when(timeSlotRepository.findById(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
+        timeSlot.setDoctor(testDoctor);
+
+        TimeSlotDoesNotBelongToDoctorException exception = assertThrows(
+                TimeSlotDoesNotBelongToDoctorException.class,
+                () -> appointmentService.createAppointment(request)
+        );
+
+        assertEquals("TimeSlot with id 1 does not belong to doctor with id 1", exception.getMessage());
+        verify(patientRepository, times(1)).findById(patient.getId());
+        verify(doctorRepository, times(1)).findById(doctor.getId());
+        verify(timeSlotRepository, times(1)).findById(timeSlot.getId());
+        verifyNoInteractions(appointmentRepository);
     }
-
-
 }
