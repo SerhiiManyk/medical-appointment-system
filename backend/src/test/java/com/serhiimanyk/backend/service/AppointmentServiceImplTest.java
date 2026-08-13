@@ -17,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -251,23 +253,60 @@ class AppointmentServiceImplTest {
                 () -> appointmentService.getAppointmentById(10000L));
 
         assertEquals("Appointment not found", exception.getMessage());
-
         verify(appointmentRepository, times(1)).findById(10000L);
     }
 
     @Test
     public void getAppointmentsByPatientId_shouldReturnAppointmentsSuccessfully() {
 
+        when(patientRepository.findById(1L)).thenReturn(Optional.of(patient));
+
+        Appointment appointment1 = new Appointment();
+        appointment1.setPatient(patient);
+
+        Appointment appointment2 = new Appointment();
+        appointment2.setPatient(patient);
+
+        List<Appointment> appointmentList = List.of(appointment1, appointment2);
+
+        when (appointmentRepository.findByPatientId(1L)).thenReturn(appointmentList);
+
+        List<Appointment> resultList = appointmentService.getAppointmentsByPatientId(1L);
+
+        assertEquals(appointmentList, resultList);
+        verify(appointmentRepository, times(1)).findByPatientId(1L);
+        verify(patientRepository, times(1)).findById(1L);
+
     }
 
     @Test
     public void getAppointmentsByPatientId_shouldReturnEmptyList_whenPatientHasNoAppointments() {
 
+        when(patientRepository.findById(1L)).thenReturn(Optional.of(patient));
+
+        List<Appointment> appointmentList = List.of();
+
+        when (appointmentRepository.findByPatientId(1L)).thenReturn(appointmentList);
+
+        List<Appointment> resultList = appointmentService.getAppointmentsByPatientId(1L);
+
+        assertEquals(appointmentList, resultList);
+        verify(appointmentRepository, times(1)).findByPatientId(1L);
+        verify(patientRepository, times(1)).findById(1L);
     }
 
     @Test
     public void getAppointmentsByPatientId_shouldThrowException_whenPatientNotFound(){
 
+        when(patientRepository.findById(10000L)).thenReturn(Optional.empty());
+
+        PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
+                () -> appointmentService.getAppointmentsByPatientId(10000L)
+        );
+
+        assertEquals("Patient with id 10000 is not found", exception.getMessage());
+        verify(patientRepository, times(1)).findById(10000L);
+        verifyNoInteractions(appointmentRepository);
     }
 
     @Test
