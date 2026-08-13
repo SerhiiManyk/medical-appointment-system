@@ -89,7 +89,7 @@ class AppointmentServiceImplTest {
         expectedAppointment.setTimeSlot(timeSlot);
         expectedAppointment.setStatus(AppointmentStatus.CREATED);
 
-        when(appointmentRepository.save(any(Appointment.class))).thenReturn(expectedAppointment);
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation ->  invocation.getArgument(0));
 
         Appointment actualAppointment = appointmentService.createAppointment(request);
 
@@ -222,5 +222,151 @@ class AppointmentServiceImplTest {
         verify(doctorRepository, times(1)).findById(doctor.getId());
         verify(timeSlotRepository, times(1)).findById(timeSlot.getId());
         verifyNoInteractions(appointmentRepository);
+    }
+
+    @Test
+    public void getAppointmentById_shouldReturnAppointmentSuccessfully(){
+
+        Appointment testAppointment = new Appointment();
+        testAppointment.setPatient(patient);
+        testAppointment.setDoctor(doctor);
+        testAppointment.setTimeSlot(timeSlot);
+        testAppointment.setStatus(AppointmentStatus.CREATED);
+
+        when (appointmentRepository.findById(1L)).thenReturn(Optional.of(testAppointment));
+
+        Appointment appointment = appointmentService.getAppointmentById(1L);
+
+        assertEquals(testAppointment, appointment);
+
+        verify(appointmentRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    public void getAppointmentById_shouldThrowException_whenAppointmentNotFound() {
+
+        when (appointmentRepository.findById(10000L)).thenReturn(Optional.empty());
+
+        AppointmentNotFoundException exception =  assertThrows(AppointmentNotFoundException.class,
+                () -> appointmentService.getAppointmentById(10000L));
+
+        assertEquals("Appointment not found", exception.getMessage());
+
+        verify(appointmentRepository, times(1)).findById(10000L);
+    }
+
+    @Test
+    public void getAppointmentsByPatientId_shouldReturnAppointmentsSuccessfully() {
+
+    }
+
+    @Test
+    public void getAppointmentsByPatientId_shouldReturnEmptyList_whenPatientHasNoAppointments() {
+
+    }
+
+    @Test
+    public void getAppointmentsByPatientId_shouldThrowException_whenPatientNotFound(){
+
+    }
+
+    @Test
+    public void getAppointmentsByDoctorId_shouldReturnAppointmentsSuccessfully(){
+
+    }
+
+    @Test
+    public void getAppointmentsByDoctorId_shouldReturnEmptyList_whenDoctorHasNoAppointments(){
+
+    }
+
+    @Test
+    public void getAppointmentsByDoctorId_shouldThrowException_whenDoctorNotFound(){
+
+    }
+
+    @Test
+    public void getAllAppointments_shouldReturnAppointmentsSuccessfully(){
+
+    }
+
+    @Test
+    public void getAllAppointments_shouldReturnEmptyList_whenNoAppointmentsExist(){
+
+    }
+
+    @Test
+    public void deleteAppointmentById_shouldDeleteAppointmentSuccessfully(){
+
+    }
+
+    @Test
+    public void deleteAppointmentById_shouldThrowException_whenAppointmentNotFound(){
+
+    }
+
+    @Test
+    public void cancelAppointment_shouldCancelAppointmentSuccessfully(){
+
+    }
+
+    @Test
+    public void cancelAppointmentById_shouldThrowException_whenAppointmentNotFound(){
+
+    }
+
+    @Test
+    public void cancelAppointment_shouldThrowException_whenAppointmentAlreadyCancelled(){
+
+    }
+
+    @Test
+    public void cancelAppointment_shouldThrowException_whenAppointmentAlreadyCompleted(){
+
+    }
+
+    @Test
+    public void completeAppointment_shouldCompleteAppointmentSuccessfully(){
+
+    }
+
+    @Test
+    public void completeAppointment_shouldThrowException_whenAppointmentNotFound(){
+
+    }
+
+    @Test
+    public void completeAppointment_shouldThrowException_whenAppointmentAlreadyCompleted(){
+
+    }
+
+    @Test
+    public void completeAppointment_shouldThrowException_whenAppointmentAlreadyCancelled(){
+
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldRescheduleAppointmentSuccessfully(){
+
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldThrowException_whenAppointmentNotFound(){
+
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotNotFound(){
+
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotIsNotFree(){
+
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotBelongsToAnotherDoctor(){
+
     }
 }
