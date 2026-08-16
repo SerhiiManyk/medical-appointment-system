@@ -17,7 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -312,16 +311,52 @@ class AppointmentServiceImplTest {
     @Test
     public void getAppointmentsByDoctorId_shouldReturnAppointmentsSuccessfully(){
 
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+
+        Appointment appointment1 = new Appointment();
+        appointment1.setDoctor(doctor);
+
+        Appointment appointment2 = new Appointment();
+        appointment2.setDoctor(doctor);
+
+        List<Appointment> appointmentList = List.of(appointment1, appointment2);
+
+        when (appointmentRepository.findByDoctorId(1L)).thenReturn(appointmentList);
+
+        List<Appointment> resultList = appointmentService.getAppointmentsByDoctorId(1L);
+
+        assertEquals(appointmentList, resultList);
+        verify(appointmentRepository, times(1)).findByDoctorId(1L);
+        verify(doctorRepository, times(1)).findById(1L);
     }
 
     @Test
     public void getAppointmentsByDoctorId_shouldReturnEmptyList_whenDoctorHasNoAppointments(){
 
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+
+        List<Appointment> appointmentList = List.of();
+
+        when (appointmentRepository.findByDoctorId(1L)).thenReturn(appointmentList);
+
+        List<Appointment> resultList = appointmentService.getAppointmentsByDoctorId(1L);
+
+        assertEquals(appointmentList, resultList);
+        verify(appointmentRepository, times(1)).findByDoctorId(1L);
+        verify(doctorRepository, times(1)).findById(1L);
     }
 
     @Test
     public void getAppointmentsByDoctorId_shouldThrowException_whenDoctorNotFound(){
 
+        when(doctorRepository.findById(10000L)).thenReturn(Optional.empty());
+
+        DoctorNotFoundException exception = assertThrows(DoctorNotFoundException.class,
+                () -> appointmentService.getAppointmentsByDoctorId(10000L));
+
+        assertEquals("Doctor with id 10000 is not found", exception.getMessage());
+        verify(doctorRepository, times(1)).findById(10000L);
+        verifyNoInteractions(appointmentRepository);
     }
 
     @Test
