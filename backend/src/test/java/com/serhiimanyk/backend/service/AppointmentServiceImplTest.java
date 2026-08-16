@@ -637,15 +637,89 @@ class AppointmentServiceImplTest {
     @Test
     public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotIsNotFree() {
 
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setStatus(AppointmentStatus.CREATED);
+
+        TimeSlot newTimeSlot = new TimeSlot();
+        newTimeSlot.setId(2L);
+        newTimeSlot.setStatus(TimeSlotStatus.BOOKED);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        when(timeSlotRepository.findById(2L)).thenReturn(Optional.of(newTimeSlot));
+
+        InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
+                () -> appointmentService.rescheduleAppointment(1L, 2L));
+
+        assertEquals("TimeSlot is not available.", exception.getMessage());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, times(1)).findById(2L);
     }
 
     @Test
     public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotBelongsToAnotherDoctor() {
 
+        Doctor doctor1 = new Doctor();
+        doctor1.setId(1L);
+
+        Doctor doctor2 = new Doctor();
+        doctor2.setId(2L);
+
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setStatus(AppointmentStatus.CREATED);
+        appointment.setDoctor(doctor1);
+
+        TimeSlot newTimeSlot = new TimeSlot();
+        newTimeSlot.setId(2L);
+        newTimeSlot.setStatus(TimeSlotStatus.FREE);
+        newTimeSlot.setDoctor(doctor2);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        when(timeSlotRepository.findById(2L)).thenReturn(Optional.of(newTimeSlot));
+
+        TimeSlotDoesNotBelongToDoctorException exception = assertThrows(TimeSlotDoesNotBelongToDoctorException.class,
+                () -> appointmentService.rescheduleAppointment(1L, 2L));
+
+        assertEquals("TimeSlot with id 2 does not belong to doctor with id 1", exception.getMessage());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, times(1)).findById(2L);
     }
 
     @Test
     public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotIsAlreadyCurrentTimeSlot() {
 
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+
+        Doctor doctor = new Doctor();
+        doctor.setId(1L);
+        appointment.setDoctor(doctor);
+
+        TimeSlot oldTimeSlot = new TimeSlot();
+        oldTimeSlot.setStatus(TimeSlotStatus.BOOKED);
+        oldTimeSlot.setId(1L);
+
+        TimeSlot newTimeSlot = new TimeSlot();
+        newTimeSlot.setId(1L);
+        newTimeSlot.setStatus(TimeSlotStatus.FREE);
+        newTimeSlot.setDoctor(doctor);
+
+        appointment.setTimeSlot(oldTimeSlot);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(newTimeSlot));
+
+        InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
+                () -> appointmentService.rescheduleAppointment(1L, 1L));
+        assertEquals("Timeslot with id 1 is already in progress.", exception.getMessage());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, times(1)).findById(1L);
     }
 }

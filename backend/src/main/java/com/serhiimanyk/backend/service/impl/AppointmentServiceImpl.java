@@ -144,7 +144,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         if (!appointment.getDoctor().getId().equals(newTimeSlot.getDoctor().getId())) {
             throw new TimeSlotDoesNotBelongToDoctorException(
-                    "TimeSlot with id" + newTimeSlot.getId() + " does not belong to doctor with id " + appointment.getDoctor().getId());
+                    "TimeSlot with id " + newTimeSlot.getId() + " does not belong to doctor with id " + appointment.getDoctor().getId());
         }
 
         if (appointment.getTimeSlot().getId().equals(newTimeSlot.getId())) {
