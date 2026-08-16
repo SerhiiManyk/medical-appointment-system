@@ -90,7 +90,7 @@ class AppointmentServiceImplTest {
         expectedAppointment.setTimeSlot(timeSlot);
         expectedAppointment.setStatus(AppointmentStatus.CREATED);
 
-        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation ->  invocation.getArgument(0));
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Appointment actualAppointment = appointmentService.createAppointment(request);
 
@@ -226,7 +226,7 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void getAppointmentById_shouldReturnAppointmentSuccessfully(){
+    public void getAppointmentById_shouldReturnAppointmentSuccessfully() {
 
         Appointment testAppointment = new Appointment();
         testAppointment.setPatient(patient);
@@ -234,7 +234,7 @@ class AppointmentServiceImplTest {
         testAppointment.setTimeSlot(timeSlot);
         testAppointment.setStatus(AppointmentStatus.CREATED);
 
-        when (appointmentRepository.findById(1L)).thenReturn(Optional.of(testAppointment));
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(testAppointment));
 
         Appointment appointment = appointmentService.getAppointmentById(1L);
 
@@ -246,9 +246,9 @@ class AppointmentServiceImplTest {
     @Test
     public void getAppointmentById_shouldThrowException_whenAppointmentNotFound() {
 
-        when (appointmentRepository.findById(10000L)).thenReturn(Optional.empty());
+        when(appointmentRepository.findById(10000L)).thenReturn(Optional.empty());
 
-        AppointmentNotFoundException exception =  assertThrows(AppointmentNotFoundException.class,
+        AppointmentNotFoundException exception = assertThrows(AppointmentNotFoundException.class,
                 () -> appointmentService.getAppointmentById(10000L));
 
         assertEquals("Appointment not found", exception.getMessage());
@@ -268,7 +268,7 @@ class AppointmentServiceImplTest {
 
         List<Appointment> appointmentList = List.of(appointment1, appointment2);
 
-        when (appointmentRepository.findByPatientId(1L)).thenReturn(appointmentList);
+        when(appointmentRepository.findByPatientId(1L)).thenReturn(appointmentList);
 
         List<Appointment> resultList = appointmentService.getAppointmentsByPatientId(1L);
 
@@ -285,7 +285,7 @@ class AppointmentServiceImplTest {
 
         List<Appointment> appointmentList = List.of();
 
-        when (appointmentRepository.findByPatientId(1L)).thenReturn(appointmentList);
+        when(appointmentRepository.findByPatientId(1L)).thenReturn(appointmentList);
 
         List<Appointment> resultList = appointmentService.getAppointmentsByPatientId(1L);
 
@@ -295,7 +295,7 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void getAppointmentsByPatientId_shouldThrowException_whenPatientNotFound(){
+    public void getAppointmentsByPatientId_shouldThrowException_whenPatientNotFound() {
 
         when(patientRepository.findById(10000L)).thenReturn(Optional.empty());
 
@@ -309,7 +309,7 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void getAppointmentsByDoctorId_shouldReturnAppointmentsSuccessfully(){
+    public void getAppointmentsByDoctorId_shouldReturnAppointmentsSuccessfully() {
 
         when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
 
@@ -321,7 +321,7 @@ class AppointmentServiceImplTest {
 
         List<Appointment> appointmentList = List.of(appointment1, appointment2);
 
-        when (appointmentRepository.findByDoctorId(1L)).thenReturn(appointmentList);
+        when(appointmentRepository.findByDoctorId(1L)).thenReturn(appointmentList);
 
         List<Appointment> resultList = appointmentService.getAppointmentsByDoctorId(1L);
 
@@ -331,13 +331,13 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void getAppointmentsByDoctorId_shouldReturnEmptyList_whenDoctorHasNoAppointments(){
+    public void getAppointmentsByDoctorId_shouldReturnEmptyList_whenDoctorHasNoAppointments() {
 
         when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
 
         List<Appointment> appointmentList = List.of();
 
-        when (appointmentRepository.findByDoctorId(1L)).thenReturn(appointmentList);
+        when(appointmentRepository.findByDoctorId(1L)).thenReturn(appointmentList);
 
         List<Appointment> resultList = appointmentService.getAppointmentsByDoctorId(1L);
 
@@ -347,7 +347,7 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void getAppointmentsByDoctorId_shouldThrowException_whenDoctorNotFound(){
+    public void getAppointmentsByDoctorId_shouldThrowException_whenDoctorNotFound() {
 
         when(doctorRepository.findById(10000L)).thenReturn(Optional.empty());
 
@@ -360,7 +360,7 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void getAllAppointments_shouldReturnAppointmentsSuccessfully(){
+    public void getAllAppointments_shouldReturnAppointmentsSuccessfully() {
 
         Appointment appointment1 = new Appointment();
         Appointment appointment2 = new Appointment();
@@ -376,7 +376,7 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void getAllAppointments_shouldReturnEmptyList_whenNoAppointmentsExist(){
+    public void getAllAppointments_shouldReturnEmptyList_whenNoAppointmentsExist() {
 
         List<Appointment> appointmentList = List.of();
 
@@ -389,7 +389,7 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void deleteAppointmentById_shouldDeleteAppointmentSuccessfully(){
+    public void deleteAppointmentById_shouldDeleteAppointmentSuccessfully() {
 
         appointmentService.deleteAppointmentById(1L);
 
@@ -397,7 +397,7 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void cancelAppointment_shouldCancelAppointmentSuccessfully(){
+    public void cancelAppointment_shouldCancelAppointmentSuccessfully() {
 
         Appointment appointment = new Appointment();
         TimeSlot timeSlot = new TimeSlot();
@@ -407,7 +407,7 @@ class AppointmentServiceImplTest {
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation ->  invocation.getArgument(0));
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Appointment result = appointmentService.cancelAppointment(1L);
 
@@ -419,7 +419,7 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void cancelAppointment_shouldThrowException_whenAppointmentNotFound(){
+    public void cancelAppointment_shouldThrowException_whenAppointmentNotFound() {
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -432,14 +432,14 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void cancelAppointment_shouldThrowException_whenAppointmentAlreadyCancelled(){
+    public void cancelAppointment_shouldThrowException_whenAppointmentAlreadyCancelled() {
 
         Appointment appointment = new Appointment();
         appointment.setStatus(AppointmentStatus.CANCELLED);
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        AppointmentAlreadyFinishedException exception =  assertThrows(AppointmentAlreadyFinishedException.class,
+        AppointmentAlreadyFinishedException exception = assertThrows(AppointmentAlreadyFinishedException.class,
                 () -> appointmentService.cancelAppointment(1L));
 
         assertEquals("Appointment is already cancelled or completed.", exception.getMessage());
@@ -448,14 +448,14 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void cancelAppointment_shouldThrowException_whenAppointmentAlreadyCompleted(){
+    public void cancelAppointment_shouldThrowException_whenAppointmentAlreadyCompleted() {
 
         Appointment appointment = new Appointment();
         appointment.setStatus(AppointmentStatus.COMPLETED);
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        AppointmentAlreadyFinishedException exception =  assertThrows(AppointmentAlreadyFinishedException.class,
+        AppointmentAlreadyFinishedException exception = assertThrows(AppointmentAlreadyFinishedException.class,
                 () -> appointmentService.cancelAppointment(1L));
 
         assertEquals("Appointment is already cancelled or completed.", exception.getMessage());
@@ -465,16 +465,16 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void completeAppointment_shouldCompleteAppointmentSuccessfully(){
+    public void completeAppointment_shouldCompleteAppointmentSuccessfully() {
 
         Appointment appointment = new Appointment();
         appointment.setStatus(AppointmentStatus.CREATED);
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation ->  invocation.getArgument(0));
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Appointment result =appointmentService.completeAppointment(1L);
+        Appointment result = appointmentService.completeAppointment(1L);
 
         assertEquals(appointment, result);
         assertEquals(AppointmentStatus.COMPLETED, result.getStatus());
@@ -483,7 +483,7 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void completeAppointment_shouldThrowException_whenAppointmentNotFound(){
+    public void completeAppointment_shouldThrowException_whenAppointmentNotFound() {
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -496,14 +496,14 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void completeAppointment_shouldThrowException_whenAppointmentAlreadyCompleted(){
+    public void completeAppointment_shouldThrowException_whenAppointmentAlreadyCompleted() {
 
         Appointment appointment = new Appointment();
         appointment.setStatus(AppointmentStatus.COMPLETED);
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        AppointmentAlreadyFinishedException exception =  assertThrows(AppointmentAlreadyFinishedException.class,
+        AppointmentAlreadyFinishedException exception = assertThrows(AppointmentAlreadyFinishedException.class,
                 () -> appointmentService.completeAppointment(1L));
 
         assertEquals("Appointment is already cancelled or completed.", exception.getMessage());
@@ -512,14 +512,14 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void completeAppointment_shouldThrowException_whenAppointmentAlreadyCancelled(){
+    public void completeAppointment_shouldThrowException_whenAppointmentAlreadyCancelled() {
 
         Appointment appointment = new Appointment();
         appointment.setStatus(AppointmentStatus.CANCELLED);
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        AppointmentAlreadyFinishedException exception =  assertThrows(AppointmentAlreadyFinishedException.class,
+        AppointmentAlreadyFinishedException exception = assertThrows(AppointmentAlreadyFinishedException.class,
                 () -> appointmentService.completeAppointment(1L));
 
         assertEquals("Appointment is already cancelled or completed.", exception.getMessage());
@@ -528,27 +528,124 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void rescheduleAppointment_shouldRescheduleAppointmentSuccessfully(){
+    public void rescheduleAppointment_shouldRescheduleAppointmentSuccessfully() {
+
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+
+        Doctor doctor = new Doctor();
+        doctor.setId(1L);
+        appointment.setDoctor(doctor);
+
+        TimeSlot oldTimeSlot = new TimeSlot();
+        oldTimeSlot.setStatus(TimeSlotStatus.BOOKED);
+        oldTimeSlot.setId(1L);
+
+        TimeSlot newTimeSlot = new TimeSlot();
+        newTimeSlot.setId(2L);
+        newTimeSlot.setStatus(TimeSlotStatus.FREE);
+        newTimeSlot.setDoctor(doctor);
+
+        appointment.setTimeSlot(oldTimeSlot);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(timeSlotRepository.findById(2L)).thenReturn(Optional.of(newTimeSlot));
+
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Appointment result = appointmentService.rescheduleAppointment(1L, 2L);
+
+        assertEquals(TimeSlotStatus.BOOKED, newTimeSlot.getStatus());
+        assertEquals(TimeSlotStatus.FREE, oldTimeSlot.getStatus());
+        assertEquals(newTimeSlot, result.getTimeSlot());
+
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, times(1)).findById(2L);
+        verify(appointmentRepository, times(1)).save(appointment);
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldThrowException_whenAppointmentNotFound() {
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
+
+        AppointmentNotFoundException exception = assertThrows(AppointmentNotFoundException.class,
+                () -> appointmentService.rescheduleAppointment(1L,2L));
+
+        assertEquals("Appointment not found", exception.getMessage());
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+        verifyNoInteractions(timeSlotRepository);
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldThrowException_whenAppointmentAlreadyCancelled() {
+
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        AppointmentAlreadyFinishedException exception = assertThrows(AppointmentAlreadyFinishedException.class,
+                () -> appointmentService.rescheduleAppointment(1L, 2L));
+
+        assertEquals("Appointment is already cancelled or completed.", exception.getMessage());
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+        verifyNoInteractions(timeSlotRepository);
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldThrowException_whenAppointmentAlreadyCompleted() {
+
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setStatus(AppointmentStatus.COMPLETED);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        AppointmentAlreadyFinishedException exception = assertThrows(AppointmentAlreadyFinishedException.class,
+                () -> appointmentService.rescheduleAppointment(1L, 2L));
+
+        assertEquals("Appointment is already cancelled or completed.", exception.getMessage());
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+        verifyNoInteractions(timeSlotRepository);
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotNotFound() {
+
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setStatus(AppointmentStatus.CREATED);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        when(timeSlotRepository.findById(2L)).thenReturn(Optional.empty());
+
+        TimeSlotNotFoundException exception = assertThrows(TimeSlotNotFoundException.class,
+                () -> appointmentService.rescheduleAppointment(1L, 2L));
+
+        assertEquals("Time slot with id 2 not found", exception.getMessage());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, times(1)).findById(2L);
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotIsNotFree() {
 
     }
 
     @Test
-    public void rescheduleAppointment_shouldThrowException_whenAppointmentNotFound(){
+    public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotBelongsToAnotherDoctor() {
 
     }
 
     @Test
-    public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotNotFound(){
-
-    }
-
-    @Test
-    public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotIsNotFree(){
-
-    }
-
-    @Test
-    public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotBelongsToAnotherDoctor(){
+    public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotIsAlreadyCurrentTimeSlot() {
 
     }
 }
