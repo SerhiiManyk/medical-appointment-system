@@ -362,11 +362,30 @@ class AppointmentServiceImplTest {
     @Test
     public void getAllAppointments_shouldReturnAppointmentsSuccessfully(){
 
+        Appointment appointment1 = new Appointment();
+        Appointment appointment2 = new Appointment();
+
+        List<Appointment> appointmentList = List.of(appointment1, appointment2);
+
+        when(appointmentRepository.findAll()).thenReturn(appointmentList);
+
+        List<Appointment> resultList = appointmentService.getAllAppointments();
+
+        assertEquals(appointmentList, resultList);
+        verify(appointmentRepository, times(1)).findAll();
     }
 
     @Test
     public void getAllAppointments_shouldReturnEmptyList_whenNoAppointmentsExist(){
 
+        List<Appointment> appointmentList = List.of();
+
+        when(appointmentRepository.findAll()).thenReturn(appointmentList);
+
+        List<Appointment> resultList = appointmentService.getAllAppointments();
+
+        assertEquals(appointmentList, resultList);
+        verify(appointmentRepository, times(1)).findAll();
     }
 
     @Test
