@@ -399,20 +399,68 @@ class AppointmentServiceImplTest {
     @Test
     public void cancelAppointment_shouldCancelAppointmentSuccessfully(){
 
+        Appointment appointment = new Appointment();
+        TimeSlot timeSlot = new TimeSlot();
+        appointment.setTimeSlot(timeSlot);
+        appointment.setStatus(AppointmentStatus.CREATED);
+        timeSlot.setStatus(TimeSlotStatus.BOOKED);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation ->  invocation.getArgument(0));
+
+        Appointment result = appointmentService.cancelAppointment(1L);
+
+        assertEquals(appointment, result);
+        assertEquals(TimeSlotStatus.FREE, result.getTimeSlot().getStatus());
+        assertEquals(AppointmentStatus.CANCELLED, result.getStatus());
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(appointmentRepository, times(1)).save(appointment);
     }
 
     @Test
-    public void cancelAppointmentById_shouldThrowException_whenAppointmentNotFound(){
+    public void cancelAppointment_shouldThrowException_whenAppointmentNotFound(){
 
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
+
+        AppointmentNotFoundException exception = assertThrows(AppointmentNotFoundException.class,
+                () -> appointmentService.cancelAppointment(1L));
+
+        assertEquals("Appointment not found", exception.getMessage());
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(appointmentRepository, never()).save(any(Appointment.class));
     }
 
     @Test
     public void cancelAppointment_shouldThrowException_whenAppointmentAlreadyCancelled(){
 
+        Appointment appointment = new Appointment();
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        AppointmentAlreadyFinishedException exception =  assertThrows(AppointmentAlreadyFinishedException.class,
+                () -> appointmentService.cancelAppointment(1L));
+
+        assertEquals("Appointment is already cancelled or completed.", exception.getMessage());
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(appointmentRepository, never()).save(any(Appointment.class));
     }
 
     @Test
     public void cancelAppointment_shouldThrowException_whenAppointmentAlreadyCompleted(){
+
+        Appointment appointment = new Appointment();
+        appointment.setStatus(AppointmentStatus.COMPLETED);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        AppointmentAlreadyFinishedException exception =  assertThrows(AppointmentAlreadyFinishedException.class,
+                () -> appointmentService.cancelAppointment(1L));
+
+        assertEquals("Appointment is already cancelled or completed.", exception.getMessage());
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(appointmentRepository, never()).save(any(Appointment.class));
 
     }
 
