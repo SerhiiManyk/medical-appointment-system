@@ -391,11 +391,9 @@ class AppointmentServiceImplTest {
     @Test
     public void deleteAppointmentById_shouldDeleteAppointmentSuccessfully(){
 
-    }
+        appointmentService.deleteAppointmentById(1L);
 
-    @Test
-    public void deleteAppointmentById_shouldThrowException_whenAppointmentNotFound(){
-
+        verify(appointmentRepository, times(1)).deleteById(1L);
     }
 
     @Test
