@@ -5,6 +5,7 @@ import com.serhiimanyk.backend.entity.TimeSlot;
 import com.serhiimanyk.backend.enums.TimeSlotStatus;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;
 import com.serhiimanyk.backend.exception.InvalidTimeSlotException;
+import com.serhiimanyk.backend.exception.TimeSlotNotFoundException;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
 import com.serhiimanyk.backend.service.impl.TimeslotServiceImpl;
@@ -17,10 +18,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,13 +74,13 @@ public class TimeslotServiceImplTest {
 
         TimeSlot result = timeslotService.createTimeSlot(1L, timeSlot);
 
-        assertEquals(timeSlot, result );
+        assertEquals(timeSlot, result);
         assertEquals(doctor, result.getDoctor());
         assertEquals(TimeSlotStatus.FREE, result.getStatus());
 
-        verify(doctorRepository, times (1)).findById(1L);
-        verify(timeSlotRepository,times(1)).existsByDoctorIdAndDateAndStartTimeAndEndTime(1L, timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime());
-        verify(timeSlotRepository,times(1)).save(timeSlot);
+        verify(doctorRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, times(1)).existsByDoctorIdAndDateAndStartTimeAndEndTime(1L, timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime());
+        verify(timeSlotRepository, times(1)).save(timeSlot);
     }
 
     @Test
@@ -147,29 +148,92 @@ public class TimeslotServiceImplTest {
 
         assertEquals("Time slot already exists.", exception.getMessage());
         verify(doctorRepository, times(1)).findById(1L);
-        verify(timeSlotRepository,times(1))
+        verify(timeSlotRepository, times(1))
                 .existsByDoctorIdAndDateAndStartTimeAndEndTime(doctor.getId(), timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime());
         verify(timeSlotRepository, never()).save(any(TimeSlot.class));
     }
 
     @Test
     public void getTimeSlotById_shouldReturnTimeSlotSuccessfully() {
+
+        timeSlot = new TimeSlot();
+        timeSlot.setId(1L);
+        timeSlot.setDoctor(doctor);
+
+        when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
+
+        TimeSlot result = timeslotService.getTimeSlotById(doctor.getId(), timeSlot.getId());
+
+        assertEquals(timeSlot, result);
+        assertEquals(timeSlot.getDoctor(), result.getDoctor());
+
+        verify(timeSlotRepository, times(1)).findById(1L);
     }
 
     @Test
     public void getTimeSlotById_shouldThrowExceptionWhenTimeSlotNotFound() {
+
+        when(timeSlotRepository.findById(1L)).thenReturn(Optional.empty());
+
+        TimeSlotNotFoundException exception = assertThrows(TimeSlotNotFoundException.class,
+                () -> timeslotService.getTimeSlotById(doctor.getId(), timeSlot.getId()));
+
+        assertEquals("Timeslot not found.", exception.getMessage());
+        verify(timeSlotRepository, times(1)).findById(1L);
     }
 
     @Test
     public void getAllTimeSlotsByDoctorId_shouldReturnTimeSlotsSuccessfully() {
+
+        TimeSlot timeSlot1 = new TimeSlot();
+        timeSlot1.setId(1L);
+        timeSlot1.setDoctor(doctor);
+
+        TimeSlot timeSlot2 = new TimeSlot();
+        timeSlot2.setId(2L);
+        timeSlot2.setDoctor(doctor);
+
+        List<TimeSlot> timeSlots = List.of(timeSlot1, timeSlot2);
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(timeSlotRepository.findAllByDoctorId(doctor.getId())).thenReturn(timeSlots);
+
+        List<TimeSlot> result = timeslotService.getAllTimeSlotsByDoctorId(doctor.getId());
+
+        assertEquals(timeSlots, result);
+
+        verify(timeSlotRepository, times(1)).findAllByDoctorId(doctor.getId());
+        verify(doctorRepository, times(1)).findById(1L);
     }
 
     @Test
     public void getAllTimeSlotsByDoctorId_shouldReturnEmptyListWhenDoctorHasNoTimeSlots() {
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+
+        List<TimeSlot> timeSlots = List.of();
+
+        when(timeSlotRepository.findAllByDoctorId(doctor.getId())).thenReturn(timeSlots);
+
+        List<TimeSlot> result = timeslotService.getAllTimeSlotsByDoctorId(doctor.getId());
+
+        assertEquals(timeSlots, result);
+        assertTrue(result.isEmpty());
+        verify(timeSlotRepository, times(1)).findAllByDoctorId(doctor.getId());
+        verify(doctorRepository, times(1)).findById(1L);
     }
 
     @Test
     public void getAllTimeSlotsByDoctorId_shouldThrowExceptionWhenDoctorNotFound() {
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.empty());
+
+        DoctorNotFoundException exception = assertThrows(DoctorNotFoundException.class,
+                () -> timeslotService.getAllTimeSlotsByDoctorId(doctor.getId()));
+
+        assertEquals("Doctor with id 1 is not found.", exception.getMessage());
+        verifyNoInteractions(timeSlotRepository);
+        verify(doctorRepository, times(1)).findById(1L);
     }
 
     @Test
