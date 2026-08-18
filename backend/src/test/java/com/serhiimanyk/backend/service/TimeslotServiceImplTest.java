@@ -3,6 +3,7 @@ package com.serhiimanyk.backend.service;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.TimeSlot;
 import com.serhiimanyk.backend.enums.TimeSlotStatus;
+import com.serhiimanyk.backend.exception.DoctorNotFoundException;
 import com.serhiimanyk.backend.exception.InvalidTimeSlotException;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
@@ -97,14 +98,58 @@ public class TimeslotServiceImplTest {
 
     @Test
     public void createTimeSlot_shouldThrowExceptionWhenDateIsInThePast() {
+
+        timeSlot = new TimeSlot();
+        timeSlot.setDate(LocalDate.of(2025, 12, 30));
+        timeSlot.setStartTime(LocalTime.of(12, 30));
+        timeSlot.setEndTime(LocalTime.of(13, 0));
+
+        InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
+                () -> timeslotService.createTimeSlot(1L, timeSlot));
+
+        assertEquals("Time slot date is before time slot start date.", exception.getMessage());
+        verifyNoInteractions(timeSlotRepository, doctorRepository);
     }
 
     @Test
     public void createTimeSlot_shouldThrowExceptionWhenDoctorNotFound() {
+
+        timeSlot = new TimeSlot();
+        timeSlot.setDate(LocalDate.of(2055, 12, 30));
+        timeSlot.setStartTime(LocalTime.of(12, 30));
+        timeSlot.setEndTime(LocalTime.of(13, 0));
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.empty());
+
+        DoctorNotFoundException exception = assertThrows(DoctorNotFoundException.class,
+                () -> timeslotService.createTimeSlot(1L, timeSlot));
+
+        assertEquals("Doctor not found.", exception.getMessage());
+        verify(doctorRepository, times(1)).findById(1L);
+        verifyNoInteractions(timeSlotRepository);
     }
 
     @Test
     public void createTimeSlot_shouldThrowExceptionWhenTimeSlotAlreadyExists() {
+
+        timeSlot = new TimeSlot();
+        timeSlot.setDate(LocalDate.of(2055, 12, 30));
+        timeSlot.setStartTime(LocalTime.of(12, 30));
+        timeSlot.setEndTime(LocalTime.of(13, 0));
+        timeSlot.setDoctor(doctor);
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(timeSlotRepository.existsByDoctorIdAndDateAndStartTimeAndEndTime(doctor.getId(), timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime()))
+                .thenReturn(true);
+
+        InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
+                () -> timeslotService.createTimeSlot(1L, timeSlot));
+
+        assertEquals("Time slot already exists.", exception.getMessage());
+        verify(doctorRepository, times(1)).findById(1L);
+        verify(timeSlotRepository,times(1))
+                .existsByDoctorIdAndDateAndStartTimeAndEndTime(doctor.getId(), timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime());
+        verify(timeSlotRepository, never()).save(any(TimeSlot.class));
     }
 
     @Test
