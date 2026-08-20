@@ -294,18 +294,83 @@ public class TimeslotServiceImplTest {
 
     @Test
     public void getAvailableTimeSlotsByDateAndDoctorId_shouldReturnAvailableTimeSlotsSuccessfully() {
+
+        LocalDate futureDate = LocalDate.now().plusDays(1);
+
+        TimeSlot timeSlot1 = new TimeSlot();
+        timeSlot1.setId(1L);
+        timeSlot1.setDate(futureDate);
+        timeSlot1.setStatus(TimeSlotStatus.FREE);
+        timeSlot1.setDoctor(doctor);
+
+        TimeSlot timeSlot2 = new TimeSlot();
+        timeSlot2.setId(2L);
+        timeSlot2.setDate(futureDate);
+        timeSlot2.setStatus(TimeSlotStatus.FREE);
+        timeSlot2.setDoctor(doctor);
+
+        List<TimeSlot> timeSlots = List.of(timeSlot1, timeSlot2);
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(timeSlotRepository.findAllByDoctorIdAndDateAndStatus(doctor.getId(), timeSlot1.getDate(), TimeSlotStatus.FREE)).thenReturn(timeSlots);
+
+        List<TimeSlot> result = timeslotService.getAvailableTimeSlotsByDateAndDoctorId(doctor.getId(), timeSlot1.getDate());
+
+        assertEquals(timeSlots, result);
+
+        verify(doctorRepository, times(1)).findById(1L);
+        verify(timeSlotRepository,times (1)).findAllByDoctorIdAndDateAndStatus(doctor.getId(), timeSlot1.getDate(), TimeSlotStatus.FREE);
     }
 
     @Test
     public void getAvailableTimeSlotsByDateAndDoctorId_shouldReturnEmptyListWhenNoAvailableTimeSlots() {
+
+        LocalDate date = LocalDate.now().plusDays(1);
+
+        List<TimeSlot> timeSlots = List.of();
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(timeSlotRepository.findAllByDoctorIdAndDateAndStatus(doctor.getId(), date, TimeSlotStatus.FREE)).thenReturn(timeSlots);
+
+        List<TimeSlot> result = timeslotService.getAvailableTimeSlotsByDateAndDoctorId(doctor.getId(), date);
+
+        assertEquals(timeSlots, result);
+        assertTrue(result.isEmpty());
+
+        verify(doctorRepository, times(1)).findById(1L);
+        verify(timeSlotRepository,times (1)).findAllByDoctorIdAndDateAndStatus(doctor.getId(), date, TimeSlotStatus.FREE);
     }
 
     @Test
     public void getAvailableTimeSlotsByDateAndDoctorId_shouldThrowExceptionWhenDoctorNotFound() {
+
+        LocalDate futureDate = LocalDate.now().plusDays(1);
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.empty());
+
+        DoctorNotFoundException exception = assertThrows(DoctorNotFoundException.class,
+                () -> timeslotService.getAvailableTimeSlotsByDateAndDoctorId(doctor.getId(), futureDate) );
+
+        assertEquals("Doctor with id 1 is not found.", exception.getMessage());
+
+        verify(doctorRepository, times(1)).findById(1L);
+        verifyNoInteractions(timeSlotRepository);
     }
 
     @Test
     public void getAvailableTimeSlotsByDateAndDoctorId_shouldThrowExceptionWhenDateIsInThePast() {
+
+        LocalDate pastDate = LocalDate.now().minusDays(1);
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+
+        InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
+                () -> timeslotService.getAvailableTimeSlotsByDateAndDoctorId(doctor.getId(), pastDate) );
+
+        assertEquals("Date cannot be in the past.", exception.getMessage());
+
+        verify(doctorRepository, times(1)).findById(1L);
+        verifyNoInteractions(timeSlotRepository);
     }
 
     @Test
