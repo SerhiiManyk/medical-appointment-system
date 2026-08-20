@@ -5,6 +5,7 @@ import com.serhiimanyk.backend.entity.TimeSlot;
 import com.serhiimanyk.backend.enums.TimeSlotStatus;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;
 import com.serhiimanyk.backend.exception.InvalidTimeSlotException;
+import com.serhiimanyk.backend.exception.TimeSlotDoesNotBelongToDoctorException;
 import com.serhiimanyk.backend.exception.TimeSlotNotFoundException;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
@@ -319,7 +320,7 @@ public class TimeslotServiceImplTest {
         assertEquals(timeSlots, result);
 
         verify(doctorRepository, times(1)).findById(1L);
-        verify(timeSlotRepository,times (1)).findAllByDoctorIdAndDateAndStatus(doctor.getId(), timeSlot1.getDate(), TimeSlotStatus.FREE);
+        verify(timeSlotRepository, times(1)).findAllByDoctorIdAndDateAndStatus(doctor.getId(), timeSlot1.getDate(), TimeSlotStatus.FREE);
     }
 
     @Test
@@ -338,7 +339,7 @@ public class TimeslotServiceImplTest {
         assertTrue(result.isEmpty());
 
         verify(doctorRepository, times(1)).findById(1L);
-        verify(timeSlotRepository,times (1)).findAllByDoctorIdAndDateAndStatus(doctor.getId(), date, TimeSlotStatus.FREE);
+        verify(timeSlotRepository, times(1)).findAllByDoctorIdAndDateAndStatus(doctor.getId(), date, TimeSlotStatus.FREE);
     }
 
     @Test
@@ -349,7 +350,7 @@ public class TimeslotServiceImplTest {
         when(doctorRepository.findById(1L)).thenReturn(Optional.empty());
 
         DoctorNotFoundException exception = assertThrows(DoctorNotFoundException.class,
-                () -> timeslotService.getAvailableTimeSlotsByDateAndDoctorId(doctor.getId(), futureDate) );
+                () -> timeslotService.getAvailableTimeSlotsByDateAndDoctorId(doctor.getId(), futureDate));
 
         assertEquals("Doctor with id 1 is not found.", exception.getMessage());
 
@@ -365,7 +366,7 @@ public class TimeslotServiceImplTest {
         when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
 
         InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
-                () -> timeslotService.getAvailableTimeSlotsByDateAndDoctorId(doctor.getId(), pastDate) );
+                () -> timeslotService.getAvailableTimeSlotsByDateAndDoctorId(doctor.getId(), pastDate));
 
         assertEquals("Date cannot be in the past.", exception.getMessage());
 
@@ -375,22 +376,106 @@ public class TimeslotServiceImplTest {
 
     @Test
     public void blockTimeSlot_shouldBlockFreeTimeSlotSuccessfully() {
+
+        LocalDate futureDate = LocalDate.now().plusDays(1);
+
+        TimeSlot timeSlot = new TimeSlot();
+        timeSlot.setId(1L);
+        timeSlot.setDate(futureDate);
+        timeSlot.setStatus(TimeSlotStatus.FREE);
+        timeSlot.setDoctor(doctor);
+
+        when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
+        when(timeSlotRepository.save(timeSlot)).thenReturn(timeSlot);
+
+        TimeSlot result = timeslotService.blockTimeSlot(doctor.getId(), timeSlot.getId());
+
+        assertEquals(timeSlot, result);
+        assertEquals(TimeSlotStatus.BLOCKED, result.getStatus());
+
+        verify(timeSlotRepository, times(1)).save(timeSlot);
+        verify(timeSlotRepository, times(1)).findById(1L);
     }
 
     @Test
     public void blockTimeSlot_shouldThrowExceptionWhenTimeSlotNotFound() {
+
+        when(timeSlotRepository.findById(1L)).thenReturn(Optional.empty());
+
+        TimeSlotNotFoundException exception = assertThrows(TimeSlotNotFoundException.class,
+                () -> timeslotService.blockTimeSlot(doctor.getId(), 1L));
+
+        assertEquals("Timeslot not found.", exception.getMessage());
+        verify(timeSlotRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, never()).save(any(TimeSlot.class));
     }
 
     @Test
     public void blockTimeSlot_shouldThrowExceptionWhenTimeSlotDoesNotBelongToDoctor() {
+
+        Doctor faceDoctor = new Doctor();
+        faceDoctor.setId(2L);
+
+        LocalDate futureDate = LocalDate.now().plusDays(1);
+
+        TimeSlot timeSlot = new TimeSlot();
+        timeSlot.setId(1L);
+        timeSlot.setDate(futureDate);
+        timeSlot.setStatus(TimeSlotStatus.FREE);
+        timeSlot.setDoctor(faceDoctor);
+
+        when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
+
+        TimeSlotDoesNotBelongToDoctorException exception = assertThrows(TimeSlotDoesNotBelongToDoctorException.class,
+                () -> timeslotService.blockTimeSlot(doctor.getId(), timeSlot.getId()));
+
+        assertEquals("Timeslot with id 1 does not belong to doctor with id 1", exception.getMessage());
+        verify(timeSlotRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, never()).save(any(TimeSlot.class));
     }
 
     @Test
     public void blockTimeSlot_shouldThrowExceptionWhenTimeSlotAlreadyBlocked() {
+
+        LocalDate futureDate = LocalDate.now().plusDays(1);
+
+        TimeSlot timeSlot = new TimeSlot();
+        timeSlot.setId(1L);
+        timeSlot.setDate(futureDate);
+        timeSlot.setStatus(TimeSlotStatus.BLOCKED);
+        timeSlot.setDoctor(doctor);
+
+        when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
+
+        InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
+                () -> timeslotService.blockTimeSlot(doctor.getId(), timeSlot.getId()));
+
+        assertEquals("Timeslot is already blocked.", exception.getMessage());
+
+        verify(timeSlotRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, never()).save(any(TimeSlot.class));
     }
 
     @Test
     public void blockTimeSlot_shouldThrowExceptionWhenTimeSlotIsBooked() {
+
+        LocalDate futureDate = LocalDate.now().plusDays(1);
+
+        TimeSlot timeSlot = new TimeSlot();
+        timeSlot.setId(1L);
+        timeSlot.setDate(futureDate);
+        timeSlot.setStatus(TimeSlotStatus.BOOKED);
+        timeSlot.setDoctor(doctor);
+
+        when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
+
+        InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
+                () -> timeslotService.blockTimeSlot(doctor.getId(), timeSlot.getId()));
+
+        assertEquals("Cannot block booked time slot.", exception.getMessage());
+
+        verify(timeSlotRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, never()).save(any(TimeSlot.class));
     }
 
     @Test
