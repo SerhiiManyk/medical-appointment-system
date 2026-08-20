@@ -480,14 +480,56 @@ public class TimeslotServiceImplTest {
 
     @Test
     public void deleteTimeSlot_shouldDeleteTimeSlotSuccessfully() {
+
+        LocalDate futureDate = LocalDate.now().plusDays(1);
+
+        TimeSlot timeSlot = new TimeSlot();
+        timeSlot.setId(1L);
+        timeSlot.setDate(futureDate);
+        timeSlot.setStatus(TimeSlotStatus.BLOCKED);
+        timeSlot.setDoctor(doctor);
+
+        when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
+
+        timeslotService.deleteTimeSlot(doctor.getId(), timeSlot.getId());
+
+        verify(timeSlotRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, times(1)).delete(timeSlot);
     }
 
     @Test
     public void deleteTimeSlot_shouldThrowExceptionWhenTimeSlotNotFound() {
+
+        when(timeSlotRepository.findById(1L)).thenReturn(Optional.empty());
+
+        TimeSlotNotFoundException exception = assertThrows(TimeSlotNotFoundException.class,
+                () -> timeslotService.deleteTimeSlot(doctor.getId(), timeSlot.getId()));
+
+        assertEquals("TimeSlot with id 1 is not found.", exception.getMessage());
+        verify(timeSlotRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, never()).delete(any(TimeSlot.class));
     }
 
     @Test
     public void deleteTimeSlot_shouldThrowExceptionWhenTimeSlotIsBooked() {
+
+        LocalDate futureDate = LocalDate.now().plusDays(1);
+
+        TimeSlot timeSlot = new TimeSlot();
+        timeSlot.setId(1L);
+        timeSlot.setDate(futureDate);
+        timeSlot.setStatus(TimeSlotStatus.BOOKED);
+        timeSlot.setDoctor(doctor);
+
+        when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
+
+        InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
+                () -> timeslotService.deleteTimeSlot(doctor.getId(), timeSlot.getId()));
+
+        assertEquals("Cannot delete booked time slot.", exception.getMessage());
+
+        verify(timeSlotRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, never()).delete(any(TimeSlot.class));
     }
 
 }
