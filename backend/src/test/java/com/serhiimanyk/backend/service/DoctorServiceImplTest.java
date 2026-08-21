@@ -1,6 +1,7 @@
 package com.serhiimanyk.backend.service;
 
 import com.serhiimanyk.backend.entity.Doctor;
+import com.serhiimanyk.backend.enums.Specialization;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;
 import com.serhiimanyk.backend.mapper.DoctorMapper;
 import com.serhiimanyk.backend.repository.DoctorRepository;
@@ -12,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,6 +40,7 @@ public class DoctorServiceImplTest {
         doctor = new Doctor();
         doctor.setId(1L);
         doctor.setEmail("doctor@test.com");
+        doctor.setSpecialization(Specialization.DENTIST);
     }
 
     @Test
@@ -48,6 +51,7 @@ public class DoctorServiceImplTest {
         Doctor resultDoctor = doctorService.getDoctorByEmail(doctor.getEmail());
 
         assertEquals(resultDoctor, doctor);
+
         verify(doctorRepository, times(1)).findByEmail(doctor.getEmail());
     }
 
@@ -60,26 +64,95 @@ public class DoctorServiceImplTest {
                 () -> doctorService.getDoctorByEmail(doctor.getEmail()));
 
         assertEquals("Doctor with email " + doctor.getEmail() + " is not found", exception.getMessage());
+
         verify(doctorRepository, times(1)).findByEmail(doctor.getEmail());
     }
 
     @Test
-    public void getDoctorById_shouldReturnDoctorSuccessfully(){}
+    public void getDoctorById_shouldReturnDoctorSuccessfully(){
+
+        when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
+
+        Doctor resultDoctor = doctorService.getDoctorById(doctor.getId());
+
+        assertEquals(resultDoctor, doctor);
+
+        verify(doctorRepository, times(1)).findById(doctor.getId());
+    }
 
     @Test
-    public void getDoctorById_shouldThrowExceptionWhenDoctorNotFound(){}
+    public void getDoctorById_shouldThrowExceptionWhenDoctorNotFound(){
+
+        when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.empty());
+
+        DoctorNotFoundException exception = assertThrows( DoctorNotFoundException.class,
+                () -> doctorService.getDoctorById(doctor.getId()));
+
+        assertEquals("Doctor with id " + doctor.getId() + " not found", exception.getMessage());
+
+        verify(doctorRepository, times(1)).findById(doctor.getId());
+    }
 
     @Test
-    public void getBySpecialization_shouldReturnDoctorsSuccessfully(){}
+    public void getBySpecialization_shouldReturnDoctorsSuccessfully(){
+
+        Doctor doctor2 = new Doctor();
+        doctor2.setSpecialization(Specialization.DENTIST);
+
+        List<Doctor> doctorList = List.of(doctor, doctor2);
+
+        when(doctorRepository.findBySpecialization(doctor.getSpecialization())).thenReturn(doctorList);
+
+        List<Doctor> resultDoctors = doctorService.getBySpecialization(doctor.getSpecialization());
+
+        assertEquals(doctorList, resultDoctors);
+
+        verify(doctorRepository, times(1)).findBySpecialization(doctor.getSpecialization());
+    }
 
     @Test
-    public void getBySpecialization_shouldReturnEmptyListWhenNoDoctorsFound(){}
+    public void getBySpecialization_shouldReturnEmptyListWhenNoDoctorsFound(){
+
+        List<Doctor> doctorList = List.of();
+
+        when(doctorRepository.findBySpecialization(doctor.getSpecialization())).thenReturn(doctorList);
+
+        List<Doctor> resultDoctors = doctorService.getBySpecialization(doctor.getSpecialization());
+
+        assertEquals(doctorList, resultDoctors);
+
+        verify(doctorRepository, times(1)).findBySpecialization(doctor.getSpecialization());
+    }
 
     @Test
-    public void getAllDoctors_shouldReturnDoctorsSuccessfully(){}
+    public void getAllDoctors_shouldReturnDoctorsSuccessfully(){
+
+        Doctor doctor2 = new Doctor();
+
+        List<Doctor> doctorList = List.of(doctor, doctor2);
+
+        when(doctorRepository.findAll()).thenReturn(doctorList);
+
+        List<Doctor> resultDoctors = doctorService.getAllDoctors();
+
+        assertEquals(doctorList, resultDoctors);
+
+        verify(doctorRepository, times(1)).findAll();
+    }
 
     @Test
-    public void getAllDoctors_shouldReturnEmptyListWhenNoDoctorsFound(){}
+    public void getAllDoctors_shouldReturnEmptyListWhenNoDoctorsFound(){
+
+        List<Doctor> doctorList = List.of();
+
+        when(doctorRepository.findAll()).thenReturn(doctorList);
+
+        List<Doctor> resultDoctors = doctorService.getAllDoctors();
+
+        assertEquals(doctorList, resultDoctors);
+
+        verify(doctorRepository, times(1)).findAll();
+    }
 
     @Test
     public void createDoctor_shouldCreateDoctorSuccessfully(){}
