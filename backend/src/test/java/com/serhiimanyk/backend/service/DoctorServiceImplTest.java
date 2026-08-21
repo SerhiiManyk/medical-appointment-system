@@ -3,6 +3,7 @@ package com.serhiimanyk.backend.service;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.enums.Specialization;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;
+import com.serhiimanyk.backend.exception.EmailAlreadyExistsException;
 import com.serhiimanyk.backend.mapper.DoctorMapper;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.service.impl.DoctorServiceImpl;
@@ -26,7 +27,7 @@ public class DoctorServiceImplTest {
     private Doctor doctor;
 
     @InjectMocks
-    DoctorServiceImpl  doctorService;
+    DoctorServiceImpl doctorService;
 
     @Mock
     private DoctorRepository doctorRepository;
@@ -44,7 +45,7 @@ public class DoctorServiceImplTest {
     }
 
     @Test
-    public void getDoctorByEmail_shouldReturnDoctorSuccessfully(){
+    public void getDoctorByEmail_shouldReturnDoctorSuccessfully() {
 
         when(doctorRepository.findByEmail(doctor.getEmail())).thenReturn(Optional.of(doctor));
 
@@ -56,11 +57,11 @@ public class DoctorServiceImplTest {
     }
 
     @Test
-    public void getDoctorByEmail_shouldThrowExceptionWhenDoctorNotFound(){
+    public void getDoctorByEmail_shouldThrowExceptionWhenDoctorNotFound() {
 
         when(doctorRepository.findByEmail(doctor.getEmail())).thenReturn(Optional.empty());
 
-        DoctorNotFoundException exception = assertThrows( DoctorNotFoundException.class,
+        DoctorNotFoundException exception = assertThrows(DoctorNotFoundException.class,
                 () -> doctorService.getDoctorByEmail(doctor.getEmail()));
 
         assertEquals("Doctor with email " + doctor.getEmail() + " is not found", exception.getMessage());
@@ -69,7 +70,7 @@ public class DoctorServiceImplTest {
     }
 
     @Test
-    public void getDoctorById_shouldReturnDoctorSuccessfully(){
+    public void getDoctorById_shouldReturnDoctorSuccessfully() {
 
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
 
@@ -81,11 +82,11 @@ public class DoctorServiceImplTest {
     }
 
     @Test
-    public void getDoctorById_shouldThrowExceptionWhenDoctorNotFound(){
+    public void getDoctorById_shouldThrowExceptionWhenDoctorNotFound() {
 
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.empty());
 
-        DoctorNotFoundException exception = assertThrows( DoctorNotFoundException.class,
+        DoctorNotFoundException exception = assertThrows(DoctorNotFoundException.class,
                 () -> doctorService.getDoctorById(doctor.getId()));
 
         assertEquals("Doctor with id " + doctor.getId() + " not found", exception.getMessage());
@@ -94,7 +95,7 @@ public class DoctorServiceImplTest {
     }
 
     @Test
-    public void getBySpecialization_shouldReturnDoctorsSuccessfully(){
+    public void getBySpecialization_shouldReturnDoctorsSuccessfully() {
 
         Doctor doctor2 = new Doctor();
         doctor2.setSpecialization(Specialization.DENTIST);
@@ -111,7 +112,7 @@ public class DoctorServiceImplTest {
     }
 
     @Test
-    public void getBySpecialization_shouldReturnEmptyListWhenNoDoctorsFound(){
+    public void getBySpecialization_shouldReturnEmptyListWhenNoDoctorsFound() {
 
         List<Doctor> doctorList = List.of();
 
@@ -125,7 +126,7 @@ public class DoctorServiceImplTest {
     }
 
     @Test
-    public void getAllDoctors_shouldReturnDoctorsSuccessfully(){
+    public void getAllDoctors_shouldReturnDoctorsSuccessfully() {
 
         Doctor doctor2 = new Doctor();
 
@@ -141,7 +142,7 @@ public class DoctorServiceImplTest {
     }
 
     @Test
-    public void getAllDoctors_shouldReturnEmptyListWhenNoDoctorsFound(){
+    public void getAllDoctors_shouldReturnEmptyListWhenNoDoctorsFound() {
 
         List<Doctor> doctorList = List.of();
 
@@ -155,28 +156,56 @@ public class DoctorServiceImplTest {
     }
 
     @Test
-    public void createDoctor_shouldCreateDoctorSuccessfully(){}
+    public void createDoctor_shouldCreateDoctorSuccessfully() {
+
+        when(doctorRepository.existsByEmail(doctor.getEmail())).thenReturn(false);
+        when(doctorRepository.save(doctor)).thenReturn(doctor);
+
+        Doctor createdDoctor = doctorService.createDoctor(doctor);
+
+        assertEquals(doctor, createdDoctor);
+
+        verify(doctorRepository, times(1)).existsByEmail(doctor.getEmail());
+        verify(doctorRepository, times(1)).save(doctor);
+
+    }
 
     @Test
-    public void createDoctor_shouldThrowExceptionWhenEmailAlreadyExists(){}
+    public void createDoctor_shouldThrowExceptionWhenEmailAlreadyExists() {
+
+        when(doctorRepository.existsByEmail(doctor.getEmail())).thenReturn(true);
+
+        EmailAlreadyExistsException exception =  assertThrows(EmailAlreadyExistsException.class,
+                () -> doctorService.createDoctor(doctor));
+
+        assertEquals("Doctor with email " + doctor.getEmail() + " already exists", exception.getMessage());
+        verify(doctorRepository, times(1)).existsByEmail(doctor.getEmail());
+        verify(doctorRepository,never()).save(any());
+    }
 
     @Test
-    public void updateDoctor_shouldUpdateDoctorSuccessfullyWhenEmailIsUnchanged(){}
+    public void updateDoctor_shouldUpdateDoctorSuccessfullyWhenEmailIsUnchanged() {
+    }
 
     @Test
-    public void updateDoctor_shouldUpdateDoctorSuccessfullyWhenEmailIsChanged(){}
+    public void updateDoctor_shouldUpdateDoctorSuccessfullyWhenEmailIsChanged() {
+    }
 
     @Test
-    public void updateDoctor_shouldThrowExceptionWhenDoctorNotFound(){}
+    public void updateDoctor_shouldThrowExceptionWhenDoctorNotFound() {
+    }
 
     @Test
-    public void updateDoctor_shouldThrowExceptionWhenNewEmailAlreadyExists(){}
+    public void updateDoctor_shouldThrowExceptionWhenNewEmailAlreadyExists() {
+    }
 
     @Test
-    public void deleteDoctorById_shouldDeleteDoctorSuccessfully(){}
+    public void deleteDoctorById_shouldDeleteDoctorSuccessfully() {
+    }
 
     @Test
-    public void deleteDoctorById_shouldThrowExceptionWhenDoctorNotFound(){}
+    public void deleteDoctorById_shouldThrowExceptionWhenDoctorNotFound() {
+    }
 
 
 }
