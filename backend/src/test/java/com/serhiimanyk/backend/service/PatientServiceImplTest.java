@@ -136,7 +136,6 @@ public class PatientServiceImplTest {
     @Test
     public void createPatient_shouldThrowExceptionWhenEmailAlreadyExists() {
 
-        when(patientRepository.save(patient)).thenReturn(patient);
         when(patientRepository.existsByEmail(patient.getEmail())).thenReturn(true);
 
         EmailAlreadyExistsException exception = assertThrows(EmailAlreadyExistsException.class,
