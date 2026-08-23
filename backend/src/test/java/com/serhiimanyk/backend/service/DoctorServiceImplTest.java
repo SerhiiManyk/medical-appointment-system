@@ -266,11 +266,25 @@ public class DoctorServiceImplTest {
 
     @Test
     public void deleteDoctorById_shouldDeleteDoctorSuccessfully() {
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        doctorService.deleteDoctorById(1L);
+
+        verify(doctorRepository,times(1)).findById(1L);
+        verify(doctorRepository,times(1)).delete(doctor);
     }
 
     @Test
     public void deleteDoctorById_shouldThrowExceptionWhenDoctorNotFound() {
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.empty());
+
+        DoctorNotFoundException exception = assertThrows(DoctorNotFoundException.class,
+                () -> doctorService.deleteDoctorById(1L));
+
+        assertEquals("Doctor with id 1 not found", exception.getMessage());
+
+        verify(doctorRepository,times(1)).findById(1L);
+        verify(doctorRepository,never()).delete(any());
     }
-
-
 }
