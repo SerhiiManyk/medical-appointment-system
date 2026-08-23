@@ -1,5 +1,6 @@
 package com.serhiimanyk.backend.service;
 
+import com.serhiimanyk.backend.dto.request.DoctorRequest;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.enums.Specialization;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;
@@ -185,18 +186,82 @@ public class DoctorServiceImplTest {
 
     @Test
     public void updateDoctor_shouldUpdateDoctorSuccessfullyWhenEmailIsUnchanged() {
+
+        DoctorRequest updateDoctor = new DoctorRequest();
+        updateDoctor.setEmail("doctor@test.com");
+        updateDoctor.setSpecialization(Specialization.CARDIOLOGIST);
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(doctorRepository.save(doctor)).thenReturn(doctor);
+
+        Doctor result = doctorService.updateDoctor(updateDoctor, 1L);
+
+        assertEquals(doctor, result);
+
+        verify(doctorRepository,never()).existsByEmailAndIdNot(doctor.getEmail(), 1L);
+        verify(doctorMapper,times(1)).updateDoctorFromRequest(updateDoctor, doctor);
+        verify(doctorRepository, times(1)).findById(1L);
+        verify(doctorRepository, times(1)).save(doctor);
     }
 
     @Test
     public void updateDoctor_shouldUpdateDoctorSuccessfullyWhenEmailIsChanged() {
+
+        DoctorRequest updateDoctor = new DoctorRequest();
+        updateDoctor.setEmail("cardiologist@test.com");
+        updateDoctor.setSpecialization(Specialization.CARDIOLOGIST);
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(doctorRepository.existsByEmailAndIdNot(updateDoctor.getEmail(), 1L)).thenReturn(false);
+        when(doctorRepository.save(doctor)).thenReturn(doctor);
+
+        Doctor result = doctorService.updateDoctor(updateDoctor, 1L);
+
+        assertEquals(doctor, result);
+
+        verify(doctorMapper,times(1)).updateDoctorFromRequest(updateDoctor, doctor);
+        verify(doctorRepository, times(1)).findById(1L);
+        verify(doctorRepository, times(1)).save(doctor);
+        verify(doctorRepository, times(1)).existsByEmailAndIdNot(updateDoctor.getEmail(), 1L);
     }
 
     @Test
     public void updateDoctor_shouldThrowExceptionWhenDoctorNotFound() {
+
+        DoctorRequest updateDoctor = new DoctorRequest();
+        updateDoctor.setEmail("doctor@test.com");
+        updateDoctor.setSpecialization(Specialization.CARDIOLOGIST);
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.empty());
+
+        DoctorNotFoundException exception = assertThrows(DoctorNotFoundException.class,
+                () -> doctorService.updateDoctor(updateDoctor, 1L));
+
+        assertEquals("Doctor with id 1 not found", exception.getMessage());
+        verify(doctorRepository, times(1)).findById(1L);
+        verify(doctorRepository, never()).save(any());
+        verify(doctorMapper,never()).updateDoctorFromRequest(any(), any());
     }
 
     @Test
     public void updateDoctor_shouldThrowExceptionWhenNewEmailAlreadyExists() {
+
+        DoctorRequest updateDoctor = new DoctorRequest();
+        updateDoctor.setEmail("cardiologist@test.com");
+        updateDoctor.setSpecialization(Specialization.CARDIOLOGIST);
+
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(doctorRepository.existsByEmailAndIdNot(updateDoctor.getEmail(), 1L)).thenReturn(true);
+
+        EmailAlreadyExistsException exception = assertThrows(EmailAlreadyExistsException.class,
+                () -> doctorService.updateDoctor(updateDoctor, 1L));
+
+        assertEquals("Doctor with email " + updateDoctor.getEmail() + " already exists", exception.getMessage());
+
+        verify(doctorMapper,never()).updateDoctorFromRequest(updateDoctor, doctor);
+        verify(doctorRepository,times(1)).findById(1L);
+        verify(doctorRepository,times(1)).existsByEmailAndIdNot(updateDoctor.getEmail(), 1L);
+        verify(doctorRepository,never()).save(doctor);
     }
 
     @Test
