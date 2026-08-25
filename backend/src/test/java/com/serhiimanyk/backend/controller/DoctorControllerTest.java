@@ -16,8 +16,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -42,7 +45,10 @@ public class DoctorControllerTest {
 
         doctor = new Doctor();
         doctor.setId(1L);
+        doctor.setFirstName("firstName");
+        doctor.setLastName("lastName");
         doctor.setEmail("doctor@test.com");
+        doctor.setSpecialization(Specialization.DENTIST);
     }
 
     @Test
@@ -92,7 +98,47 @@ public class DoctorControllerTest {
     }
 
     @Test
-    public void getAllDoctors_shouldReturnDoctorsSuccessfully() {
+    public void getAllDoctors_shouldReturnDoctorsSuccessfully() throws Exception {
+
+        Doctor doctor1 = new Doctor();
+        doctor1.setId(2L);
+        doctor1.setFirstName("firstName1");
+        doctor1.setLastName("lastName1");
+        doctor1.setSpecialization(Specialization.CARDIOLOGIST);
+
+        List<Doctor> doctorList = List.of(doctor1, doctor);
+
+        List<DoctorResponse> doctorResponseList = List.of(
+                new DoctorResponse(
+                        doctor1.getId(),
+                        doctor1.getFirstName(),
+                        doctor1.getLastName(),
+                        doctor1.getSpecialization()
+                ),
+                new DoctorResponse(
+                        doctor.getId(),
+                        doctor.getFirstName(),
+                        doctor.getLastName(),
+                        doctor.getSpecialization()
+                )
+        );
+
+        when(doctorService.getAllDoctors()).thenReturn(doctorList);
+        when(doctorMapper.toDoctorsResponseList(doctorList)).thenReturn(doctorResponseList);
+
+        mockMvc.perform(
+                get("/api/doctors")
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].firstName").value("firstName1"))
+                .andExpect(jsonPath("$[0].lastName").value("lastName1"))
+                .andExpect(jsonPath("$[0].specialization").value("CARDIOLOGIST"))
+                .andExpect(jsonPath("$[1].firstName").value("firstName"))
+                .andExpect(jsonPath("$[1].lastName").value("lastName"))
+                .andExpect(jsonPath("$[1].specialization").value("DENTIST"));
+
+        verify(doctorMapper, times(1)).toDoctorsResponseList(doctorList);
+        verify(doctorService, times(1)).getAllDoctors();
     }
 
     @Test
