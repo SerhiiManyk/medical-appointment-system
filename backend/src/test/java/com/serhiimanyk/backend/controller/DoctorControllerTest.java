@@ -142,11 +142,47 @@ public class DoctorControllerTest {
     }
 
     @Test
-    public void getAllDoctors_shouldReturnEmptyListWhenNoDoctorsFound() {
+    public void getAllDoctors_shouldReturnEmptyListWhenNoDoctorsFound() throws Exception {
+
+        List<Doctor> doctorList = List.of();
+        List<DoctorResponse> doctorResponseList = List.of();
+
+        when(doctorService.getAllDoctors()).thenReturn(doctorList);
+        when(doctorMapper.toDoctorsResponseList(doctorList)).thenReturn(doctorResponseList);
+
+        mockMvc.perform(
+                        get("/api/doctors")
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+
+        verify(doctorService, times(1)).getAllDoctors();
+        verify(doctorMapper, times(1)).toDoctorsResponseList(doctorList);
     }
 
     @Test
-    public void getDoctorById_shouldReturnDoctorSuccessfully() {
+    public void getDoctorById_shouldReturnDoctorSuccessfully() throws Exception {
+
+        DoctorResponse doctorResponse = new DoctorResponse(
+                doctor.getId(),
+                doctor.getFirstName(),
+                doctor.getLastName(),
+                doctor.getSpecialization());
+
+        when(doctorService.getDoctorById(doctor.getId())).thenReturn(doctor);
+        when(doctorMapper.toDoctorResponse(doctor)).thenReturn(doctorResponse);
+
+        mockMvc.perform(
+                get("/api/doctors/" + doctor.getId())
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstName").value("firstName"))
+                .andExpect(jsonPath("$.lastName").value("lastName"))
+                .andExpect(jsonPath("$.specialization").value("DENTIST"))
+                .andExpect(jsonPath("$.id").value(1));
+
+        verify(doctorMapper, times(1)).toDoctorResponse(doctor);
+        verify(doctorService, times(1)).getDoctorById(doctor.getId());
     }
 
     @Test
