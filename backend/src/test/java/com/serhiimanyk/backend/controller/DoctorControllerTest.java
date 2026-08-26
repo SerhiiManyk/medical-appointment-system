@@ -4,6 +4,9 @@ import com.serhiimanyk.backend.dto.request.DoctorRequest;
 import com.serhiimanyk.backend.dto.response.DoctorResponse;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.enums.Specialization;
+import com.serhiimanyk.backend.exception.DoctorNotFoundException;
+import com.serhiimanyk.backend.exception.EmailAlreadyExistsException;
+import com.serhiimanyk.backend.handler.GlobalExceptionHandler;
 import com.serhiimanyk.backend.mapper.DoctorMapper;
 import com.serhiimanyk.backend.service.DoctorService;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,12 +20,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,7 +44,10 @@ public class DoctorControllerTest {
 
     @BeforeEach
     public void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(doctorController).build();
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(doctorController)
+                .setControllerAdvice(GlobalExceptionHandler.class)
+        .build();
 
         doctor = new Doctor();
         doctor.setId(1L);
@@ -242,6 +247,66 @@ public class DoctorControllerTest {
     }
 
     @Test
-    public void deleteDoctorById_shouldDeleteDoctorSuccessfully() {
+    public void deleteDoctorById_shouldDeleteDoctorSuccessfully() throws Exception {
+
+        mockMvc.perform(
+                delete("/api/doctors/" + doctor.getId())
+        )
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+
+        verify(doctorService, times(1)).deleteDoctorById(doctor.getId());
+    }
+
+    @Test
+    public void getDoctorById_shouldReturn404WhenDoctorNotFound() throws Exception {
+
+        when(doctorService.getDoctorById(doctor.getId())).thenThrow(new DoctorNotFoundException(
+                "Doctor with id " + doctor.getId() + " not found"
+        ));
+
+        mockMvc.perform(
+                get("/api/doctors/" + doctor.getId())
+        )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Doctor with id " + doctor.getId() + " not found"));
+
+        verify(doctorService, times(1)).getDoctorById(doctor.getId());
+    }
+
+    @Test
+    public void createDoctor_shouldReturn409WhenEmailAlreadyExists() throws Exception {
+
+        DoctorRequest doctorRequest = new DoctorRequest();
+        doctorRequest.setFirstName("firstName");
+        doctorRequest.setLastName("lastName");
+        doctorRequest.setPhoneNumber("1234567890");
+        doctorRequest.setEmail("doctor@test.com");
+        doctorRequest.setPassword("password");
+        doctorRequest.setSpecialization(Specialization.DENTIST);
+
+        when(doctorMapper.toDoctor(any(DoctorRequest.class))).thenReturn(doctor);
+        when(doctorService.createDoctor(doctor)).thenThrow(new EmailAlreadyExistsException(
+                "Doctor with email " + doctor.getEmail() + " already exists"
+        ));
+
+        mockMvc.perform(
+                post("/api/doctors")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                        {
+                                          "firstName": "firstName",
+                                          "lastName": "lastName",
+                                          "phoneNumber": "1234567890",
+                                          "email": "doctor@test.com",
+                                          "password": "password",
+                                          "specialization": "DENTIST"
+                                        }
+                                        """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Doctor with email " + doctor.getEmail() + " already exists"));
+
+        verify(doctorService, times(1)).createDoctor(doctor);
+        verify(doctorMapper, times(1)).toDoctor(any(DoctorRequest.class));
     }
 }
