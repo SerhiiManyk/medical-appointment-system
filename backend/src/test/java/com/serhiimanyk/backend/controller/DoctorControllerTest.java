@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -127,8 +128,8 @@ public class DoctorControllerTest {
         when(doctorMapper.toDoctorsResponseList(doctorList)).thenReturn(doctorResponseList);
 
         mockMvc.perform(
-                get("/api/doctors")
-        )
+                        get("/api/doctors")
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].firstName").value("firstName1"))
                 .andExpect(jsonPath("$[0].lastName").value("lastName1"))
@@ -173,8 +174,8 @@ public class DoctorControllerTest {
         when(doctorMapper.toDoctorResponse(doctor)).thenReturn(doctorResponse);
 
         mockMvc.perform(
-                get("/api/doctors/" + doctor.getId())
-        )
+                        get("/api/doctors/" + doctor.getId())
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("firstName"))
                 .andExpect(jsonPath("$.lastName").value("lastName"))
@@ -186,7 +187,58 @@ public class DoctorControllerTest {
     }
 
     @Test
-    public void updateDoctor_shouldUpdateDoctorSuccessfully() {
+    public void updateDoctor_shouldUpdateDoctorSuccessfully() throws Exception {
+
+        Doctor updatedDoctor = new Doctor();
+        updatedDoctor.setId(doctor.getId());
+        updatedDoctor.setFirstName("updatedFirstName");
+        updatedDoctor.setLastName("updatedLastName");
+        updatedDoctor.setEmail(doctor.getEmail());
+        updatedDoctor.setPhoneNumber(doctor.getPhoneNumber());
+        updatedDoctor.setPassword(doctor.getPassword());
+        updatedDoctor.setSpecialization(Specialization.CARDIOLOGIST);
+
+        DoctorRequest doctorRequest = new DoctorRequest();
+        doctorRequest.setFirstName(updatedDoctor.getFirstName());
+        doctorRequest.setLastName(updatedDoctor.getLastName());
+        doctorRequest.setEmail(updatedDoctor.getEmail());
+        doctorRequest.setPhoneNumber(updatedDoctor.getPhoneNumber());
+        doctorRequest.setPassword(updatedDoctor.getPassword());
+        doctorRequest.setSpecialization(updatedDoctor.getSpecialization());
+
+        DoctorResponse updatedDoctorResponse = new DoctorResponse(
+                updatedDoctor.getId(),
+                updatedDoctor.getFirstName(),
+                updatedDoctor.getLastName(),
+                updatedDoctor.getSpecialization()
+        );
+
+        when(doctorService.updateDoctor(any(DoctorRequest.class), eq(doctor.getId()))).thenReturn(updatedDoctor);
+        when(doctorMapper.toDoctorResponse(updatedDoctor)).thenReturn(updatedDoctorResponse);
+
+        mockMvc.perform(
+                        put("/api/doctors/" + doctor.getId())
+
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "firstName": "updatedFirstName",
+                                          "lastName": "updatedLastName",
+                                          "phoneNumber": "1234567890",
+                                          "email": "doctor@test.com",
+                                          "password": "password",
+                                          "specialization": "CARDIOLOGIST"
+                                        }
+                                        """)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstName").value("updatedFirstName"))
+                .andExpect(jsonPath("$.lastName").value("updatedLastName"))
+                .andExpect(jsonPath("$.specialization").value("CARDIOLOGIST"))
+                .andExpect(jsonPath("$.id").value(1));
+
+        verify(doctorMapper, times(1)).toDoctorResponse(updatedDoctor);
+        verify(doctorService, times(1)).updateDoctor(any(DoctorRequest.class), eq(doctor.getId()));
     }
 
     @Test
