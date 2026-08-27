@@ -20,7 +20,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -47,7 +46,7 @@ public class DoctorControllerTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(doctorController)
                 .setControllerAdvice(GlobalExceptionHandler.class)
-        .build();
+                .build();
 
         doctor = new Doctor();
         doctor.setId(1L);
@@ -250,8 +249,8 @@ public class DoctorControllerTest {
     public void deleteDoctorById_shouldDeleteDoctorSuccessfully() throws Exception {
 
         mockMvc.perform(
-                delete("/api/doctors/" + doctor.getId())
-        )
+                        delete("/api/doctors/" + doctor.getId())
+                )
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
@@ -266,8 +265,8 @@ public class DoctorControllerTest {
         ));
 
         mockMvc.perform(
-                get("/api/doctors/" + doctor.getId())
-        )
+                        get("/api/doctors/" + doctor.getId())
+                )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Doctor with id " + doctor.getId() + " not found"));
 
@@ -291,9 +290,9 @@ public class DoctorControllerTest {
         ));
 
         mockMvc.perform(
-                post("/api/doctors")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+                        post("/api/doctors")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
                                         {
                                           "firstName": "firstName",
                                           "lastName": "lastName",
@@ -308,5 +307,70 @@ public class DoctorControllerTest {
 
         verify(doctorService, times(1)).createDoctor(doctor);
         verify(doctorMapper, times(1)).toDoctor(any(DoctorRequest.class));
+    }
+
+    @Test
+    public void updateDoctor_shouldReturn404WhenDoctorNotFound() throws Exception {
+
+        when(doctorService.updateDoctor(any(DoctorRequest.class), eq(doctor.getId()))).thenThrow(new DoctorNotFoundException
+                ("Doctor with id " + doctor.getId() + " not found"));
+
+        mockMvc.perform(
+                        put("/api/doctors/" + doctor.getId())
+
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "firstName": "updatedFirstName",
+                                          "lastName": "updatedLastName",
+                                          "phoneNumber": "1234567890",
+                                          "email": "doctor@test.com",
+                                          "password": "password",
+                                          "specialization": "CARDIOLOGIST"
+                                        }
+                                        """)
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Doctor with id " + doctor.getId() + " not found"));
+
+        verify(doctorService, times(1)).updateDoctor(any(DoctorRequest.class), eq(doctor.getId()));
+        verify(doctorMapper, never()).toDoctorResponse(any());
+    }
+
+    @Test
+    public void deleteDoctorById_shouldReturn404WhenDoctorNotFound() throws Exception {
+
+        doThrow(new DoctorNotFoundException("Doctor with id " + doctor.getId() + " not found"))
+                .when(doctorService)
+                .deleteDoctorById(doctor.getId());
+
+        mockMvc.perform(
+                        delete("/api/doctors/" + doctor.getId())
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Doctor with id " + doctor.getId() + " not found"));
+
+        verify(doctorService, times(1)).deleteDoctorById(doctor.getId());
+    }
+
+    @Test
+    public void createDoctor_shouldReturn400WhenRequiredFieldIsMissing() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/doctors")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "firstName": "firstName",
+                                          "lastName": "lastName",
+                                          "phoneNumber": "1234567890",
+                                          "email": "doctor@test.com",
+                                          "password": "password"
+                                        }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(doctorService, doctorMapper);
+        verify(doctorMapper, never()).toDoctor(any());
     }
 }
