@@ -371,6 +371,47 @@ public class DoctorControllerTest {
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(doctorService, doctorMapper);
-        verify(doctorMapper, never()).toDoctor(any());
+    }
+
+    @Test
+    public void createDoctor_shouldReturn400WhenEmailIsInvalid() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/doctors")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "firstName": "firstName",
+                                          "lastName": "lastName",
+                                          "phoneNumber": "1234567890",
+                                          "email": "aaa",
+                                          "password": "password",
+                                          "specialization": "DENTIST"
+                                        }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(doctorService, doctorMapper);
+    }
+
+    @Test
+    public void createDoctor_shouldReturn400WhenPasswordIsTooShort() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/doctors")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "firstName": "firstName",
+                                          "lastName": "lastName",
+                                          "phoneNumber": "1234567890",
+                                          "email": "doctor@test.com",
+                                          "password": "pass",
+                                          "specialization": "DENTIST"
+                                        }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(doctorService, doctorMapper);
     }
 }
