@@ -18,9 +18,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -72,19 +75,19 @@ public class PatientControllerTest {
         when(patientService.createPatient(patient)).thenReturn(patient);
 
         mockMvc.perform(
-                post("/api/patients")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                 {
-                                   "firstName": "John",
-                                   "lastName": "Doe",
-                                   "phoneNumber": "1234567890",
-                                   "email": "patient@mail.com",
-                                   "password": "password",
-                                   "gender": "MALE",
-                                   "dateOfBirth": "1989-07-07"
-                                 }
-                                """))
+                        post("/api/patients")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                           "firstName": "John",
+                                           "lastName": "Doe",
+                                           "phoneNumber": "1234567890",
+                                           "email": "patient@mail.com",
+                                           "password": "password",
+                                           "gender": "MALE",
+                                           "dateOfBirth": "1989-07-07"
+                                         }
+                                        """))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/api/patients/1"))
                 .andExpect(jsonPath("$.firstName").value("John"))
@@ -93,8 +96,75 @@ public class PatientControllerTest {
                 .andExpect(jsonPath("$.dateOfBirth").value("1989-07-07"))
                 .andExpect(jsonPath("$.id").value(1));
 
-        verify(patientMapper,times(1)).toPatient(any(PatientRequest.class));
-        verify(patientMapper,times(1)).toPatientResponse(patient);
-        verify(patientService,times(1)).createPatient(patient);
+        verify(patientMapper, times(1)).toPatient(any(PatientRequest.class));
+        verify(patientMapper, times(1)).toPatientResponse(patient);
+        verify(patientService, times(1)).createPatient(patient);
+    }
+
+    @Test
+    public void getAllPatients_shouldReturnPatientsSuccessfully() throws Exception {
+        Patient patient1 = new Patient();
+        patient1.setId(2L);
+        patient1.setFirstName("Adam");
+        patient1.setLastName("Snow");
+        patient1.setGender(Gender.MALE);
+        patient1.setDateOfBirth(LocalDate.of(1995, 3, 8));
+
+        List<Patient> patientList = List.of(patient, patient1);
+
+        List<PatientResponse> patientResponseList = List.of(
+                new PatientResponse(
+                        patient.getId(),
+                        patient.getFirstName(),
+                        patient.getLastName(),
+                        patient.getGender(),
+                        patient.getDateOfBirth()),
+
+                new PatientResponse(
+                        patient1.getId(),
+                        patient1.getFirstName(),
+                        patient1.getLastName(),
+                        patient1.getGender(),
+                        patient1.getDateOfBirth()
+                )
+        );
+
+        when(patientService.getAllPatients()).thenReturn(patientList);
+        when(patientMapper.toPatientResponseList(patientList)).thenReturn(patientResponseList);
+        mockMvc.perform(
+                get("/api/patients")
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].firstName").value("John"))
+                .andExpect(jsonPath("$[0].lastName").value("Doe"))
+                .andExpect(jsonPath("$[0].gender").value("MALE"))
+                .andExpect(jsonPath("$[0].dateOfBirth").value("1989-07-07"))
+                .andExpect(jsonPath("$[1].firstName").value("Adam"))
+                .andExpect(jsonPath("$[1].lastName").value("Snow"))
+                .andExpect(jsonPath("$[1].gender").value("MALE"))
+                .andExpect(jsonPath("$[1].dateOfBirth").value("1995-03-08"))
+                .andExpect(jsonPath("$.length()").value(2));
+
+        verify(patientService, times(1)).getAllPatients();
+        verify(patientMapper, times(1)).toPatientResponseList(patientList);
+    }
+
+    @Test
+    public void getAllPatients_shouldReturnEmptyListWhenNoPatientsFound() throws Exception {
+
+        List<Patient> patientList = List.of();
+        List<PatientResponse> patientResponseList = List.of();
+
+        when(patientService.getAllPatients()).thenReturn(patientList);
+        when(patientMapper.toPatientResponseList(patientList)).thenReturn(patientResponseList);
+
+        mockMvc.perform(
+                get("/api/patients")
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+
+        verify(patientService, times(1)).getAllPatients();
+        verify(patientMapper, times(1)).toPatientResponseList(patientList);
     }
 }
