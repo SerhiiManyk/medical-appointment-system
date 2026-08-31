@@ -59,19 +59,11 @@ public class DoctorControllerTest {
     @Test
     public void createDoctor_shouldCreateDoctorSuccessfully() throws Exception {
 
-        DoctorRequest doctorRequest = new DoctorRequest();
-        doctorRequest.setFirstName("firstName");
-        doctorRequest.setLastName("lastName");
-        doctorRequest.setPhoneNumber("1234567890");
-        doctorRequest.setEmail("doctor@test.com");
-        doctorRequest.setPassword("password");
-        doctorRequest.setSpecialization(Specialization.DENTIST);
-
         DoctorResponse doctorResponse = new DoctorResponse(
                 doctor.getId(),
-                doctorRequest.getFirstName(),
-                doctorRequest.getLastName(),
-                doctorRequest.getSpecialization());
+                doctor.getFirstName(),
+                doctor.getLastName(),
+                doctor.getSpecialization());
 
         when(doctorMapper.toDoctor(any(DoctorRequest.class))).thenReturn(doctor);
         when(doctorMapper.toDoctorResponse(doctor)).thenReturn(doctorResponse);
@@ -202,14 +194,6 @@ public class DoctorControllerTest {
         updatedDoctor.setPassword(doctor.getPassword());
         updatedDoctor.setSpecialization(Specialization.CARDIOLOGIST);
 
-        DoctorRequest doctorRequest = new DoctorRequest();
-        doctorRequest.setFirstName(updatedDoctor.getFirstName());
-        doctorRequest.setLastName(updatedDoctor.getLastName());
-        doctorRequest.setEmail(updatedDoctor.getEmail());
-        doctorRequest.setPhoneNumber(updatedDoctor.getPhoneNumber());
-        doctorRequest.setPassword(updatedDoctor.getPassword());
-        doctorRequest.setSpecialization(updatedDoctor.getSpecialization());
-
         DoctorResponse updatedDoctorResponse = new DoctorResponse(
                 updatedDoctor.getId(),
                 updatedDoctor.getFirstName(),
@@ -275,14 +259,6 @@ public class DoctorControllerTest {
 
     @Test
     public void createDoctor_shouldReturn409WhenEmailAlreadyExists() throws Exception {
-
-        DoctorRequest doctorRequest = new DoctorRequest();
-        doctorRequest.setFirstName("firstName");
-        doctorRequest.setLastName("lastName");
-        doctorRequest.setPhoneNumber("1234567890");
-        doctorRequest.setEmail("doctor@test.com");
-        doctorRequest.setPassword("password");
-        doctorRequest.setSpecialization(Specialization.DENTIST);
 
         when(doctorMapper.toDoctor(any(DoctorRequest.class))).thenReturn(doctor);
         when(doctorService.createDoctor(doctor)).thenThrow(new EmailAlreadyExistsException(
