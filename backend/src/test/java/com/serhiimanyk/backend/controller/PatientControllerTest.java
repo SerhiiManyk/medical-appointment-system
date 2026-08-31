@@ -4,6 +4,7 @@ import com.serhiimanyk.backend.dto.request.PatientRequest;
 import com.serhiimanyk.backend.dto.response.PatientResponse;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.enums.Gender;
+import com.serhiimanyk.backend.exception.PatientNotFoundException;
 import com.serhiimanyk.backend.handler.GlobalExceptionHandler;
 import com.serhiimanyk.backend.mapper.PatientMapper;
 import com.serhiimanyk.backend.service.PatientService;
@@ -18,7 +19,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -167,4 +167,49 @@ public class PatientControllerTest {
         verify(patientService, times(1)).getAllPatients();
         verify(patientMapper, times(1)).toPatientResponseList(patientList);
     }
+
+    @Test
+    public void getPatientById_shouldReturnPatientSuccessfully() throws Exception {
+
+        PatientResponse patientResponse = new PatientResponse(
+                patient.getId(),
+                patient.getFirstName(),
+                patient.getLastName(),
+                patient.getGender(),
+                patient.getDateOfBirth()
+        );
+
+        when(patientService.getPatientById(patient.getId())).thenReturn(patient);
+        when(patientMapper.toPatientResponse(patient)).thenReturn(patientResponse);
+
+        mockMvc.perform(
+                get("/api/patients/" + patient.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstName").value("John"))
+                .andExpect(jsonPath("$.lastName").value("Doe"))
+                .andExpect(jsonPath("$.gender").value("MALE"))
+                .andExpect(jsonPath("$.dateOfBirth").value("1989-07-07"))
+                .andExpect(jsonPath("$.id").value(1));
+
+        verify(patientService, times(1)).getPatientById(patient.getId());
+        verify(patientMapper, times(1)).toPatientResponse(patient);
+    }
+
+    @Test
+    public void getPatientById_shouldReturn404WhenPatientNotFound() throws Exception {
+
+        when(patientService.getPatientById(patient.getId())).thenThrow(new PatientNotFoundException(
+                "Patient with id "+ patient.getId() +" is not found"));
+
+        mockMvc.perform(
+                        get("/api/patients/" + patient.getId()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Patient with id "+ patient.getId() +" is not found"));
+
+        verify(patientService, times(1)).getPatientById(patient.getId());
+        verify(patientMapper, never()).toPatientResponse(any());
+    }
+
+    @Test
+    public void updatePatient_shouldUpdatePatientSuccessfully() throws Exception {}
 }
