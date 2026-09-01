@@ -234,19 +234,19 @@ public class PatientControllerTest {
         when(patientMapper.toPatientResponse(patientForUpdate)).thenReturn(patientResponse);
 
         mockMvc.perform(put("/api/patients/" + patient.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {
-                        "firstName": "Anton",
-                        "lastName": "Daniel",
-                        "phoneNumber": "1234567890",
-                        "email": "patient@mail.com",
-                        "password": "password",
-                        "gender": "MALE",
-                        "dateOfBirth": "1989-07-07"
-                        }
-                        """)
-        )
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                "firstName": "Anton",
+                                "lastName": "Daniel",
+                                "phoneNumber": "1234567890",
+                                "email": "patient@mail.com",
+                                "password": "password",
+                                "gender": "MALE",
+                                "dateOfBirth": "1989-07-07"
+                                }
+                                """)
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("Anton"))
                 .andExpect(jsonPath("$.lastName").value("Daniel"))
@@ -265,19 +265,19 @@ public class PatientControllerTest {
                 "Patient with id " + patient.getId() + " is not found"));
 
         mockMvc.perform(put("/api/patients/" + patient.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {
-                        "firstName": "Anton",
-                        "lastName": "Daniel",
-                        "phoneNumber": "1234567890",
-                        "email": "patient@mail.com",
-                        "password": "password",
-                        "gender": "MALE",
-                        "dateOfBirth": "1989-07-07"
-                        }
-                        """)
-        )
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                "firstName": "Anton",
+                                "lastName": "Daniel",
+                                "phoneNumber": "1234567890",
+                                "email": "patient@mail.com",
+                                "password": "password",
+                                "gender": "MALE",
+                                "dateOfBirth": "1989-07-07"
+                                }
+                                """)
+                )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Patient with id " + patient.getId() + " is not found"));
 
@@ -285,4 +285,30 @@ public class PatientControllerTest {
         verify(patientMapper, never()).toPatientResponse(any());
     }
 
+    @Test
+    public void deletePatientById_shouldDeletePatientSuccessfully() throws Exception {
+        mockMvc.perform(
+                        delete("/api/patients/" + patient.getId())
+                )
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+        verify(patientService, times(1)).deletePatientById(patient.getId());
+    }
+
+    @Test
+    public void deletePatientById_shouldReturn404WhenPatientNotFound() throws Exception {
+
+        doThrow(new PatientNotFoundException("Patient with id " + patient.getId() + " is not found"))
+                .when(patientService)
+                .deletePatientById(patient.getId());
+
+        mockMvc.perform(
+                        delete("/api/patients/" + patient.getId())
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Patient with id " + patient.getId() + " is not found"));
+
+        verify(patientService, times(1)).deletePatientById(patient.getId());
+        verify(patientMapper, never()).toPatientResponse(any());
+    }
 }
