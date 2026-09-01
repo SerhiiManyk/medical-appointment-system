@@ -311,4 +311,158 @@ public class PatientControllerTest {
         verify(patientService, times(1)).deletePatientById(patient.getId());
         verify(patientMapper, never()).toPatientResponse(any());
     }
+
+    @Test
+    public void createPatient_shouldReturn400WhenFirstNameIsBlank() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/patients")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                           "firstName": "",
+                                           "lastName": "Doe",
+                                           "phoneNumber": "1234567890",
+                                           "email": "patient@mail.com",
+                                           "password": "password",
+                                           "gender": "MALE",
+                                           "dateOfBirth": "1989-07-07"
+                                         }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(patientMapper, patientService);
+    }
+
+    @Test
+    public void createPatient_shouldReturn400WhenEmailIsInvalid() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/patients")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                           "firstName": "John",
+                                           "lastName": "Doe",
+                                           "phoneNumber": "1234567890",
+                                           "email": "patient",
+                                           "password": "password",
+                                           "gender": "MALE",
+                                           "dateOfBirth": "1989-07-07"
+                                         }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(patientMapper, patientService);
+    }
+
+    @Test
+    public void createPatient_shouldReturn400WhenPasswordIsInvalid() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/patients")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                           "firstName": "John",
+                                           "lastName": "Doe",
+                                           "phoneNumber": "1234567890",
+                                           "email": "patient@mail.com",
+                                           "password": "p",
+                                           "gender": "MALE",
+                                           "dateOfBirth": "1989-07-07"
+                                         }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(patientMapper, patientService);
+    }
+
+    @Test
+    public void createPatient_shouldReturn400WhenGenderIsNull() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/patients")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                           "firstName": "John",
+                                           "lastName": "Doe",
+                                           "phoneNumber": "1234567890",
+                                           "email": "patient@mail.com",
+                                           "password": "password",
+                                           "gender": null,
+                                           "dateOfBirth": "1989-07-07"
+                                         }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(patientMapper, patientService);
+    }
+
+    @Test
+    public void createPatient_shouldReturn400WhenDateOfBirthIsNull() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/patients")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                           "firstName": "John",
+                                           "lastName": "Doe",
+                                           "phoneNumber": "1234567890",
+                                           "email": "patient@mail.com",
+                                           "password": "password",
+                                           "gender": "MALE",
+                                           "dateOfBirth": null
+                                         }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(patientMapper, patientService);
+    }
+
+    @Test
+    public void createPatient_shouldReturn400WhenDateOfBirthIsInTheFuture() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/patients")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                           "firstName": "John",
+                                           "lastName": "Doe",
+                                           "phoneNumber": "1234567890",
+                                           "email": "patient@mail.com",
+                                           "password": "password",
+                                           "gender": "MALE",
+                                           "dateOfBirth": "2099-01-01"
+                                         }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(patientMapper, patientService);
+    }
+
+    @Test
+    public void createPatient_shouldReturn400WhenPhoneNumberIsInvalid() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/patients")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                           "firstName": "John",
+                                           "lastName": "Doe",
+                                           "phoneNumber": "abc123",
+                                           "email": "patient@mail.com",
+                                           "password": "password",
+                                           "gender": "MALE",
+                                           "dateOfBirth": "2002-01-01"
+                                         }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(patientMapper, patientService);
+    }
 }
