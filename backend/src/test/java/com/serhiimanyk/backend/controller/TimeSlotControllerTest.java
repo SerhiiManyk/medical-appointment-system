@@ -21,9 +21,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -120,9 +123,9 @@ public class TimeSlotControllerTest {
         ));
 
         mockMvc.perform(
-                post("/api/doctors/1/timeslots")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+                        post("/api/doctors/1/timeslots")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
                                         {
                                         "date": "2030-07-11",
                                         "startTime": "11:30",
@@ -185,5 +188,78 @@ public class TimeSlotControllerTest {
 
         verify(timeSlotMapper, times(1)).toTimeSlot(any(TimeSlotRequest.class));
         verify(timeSlotService, times(1)).createTimeSlot(doctor.getId(), timeSlot);
+    }
+
+    @Test
+    public void getAllTimeSlotsByDoctorId_shouldReturnTimeSlotsSuccessfully() throws Exception {
+
+        TimeSlot timeSlot1 = new TimeSlot();
+        timeSlot1.setId(2L);
+        timeSlot1.setDoctor(doctor);
+        timeSlot1.setStartTime(LocalTime.of(10, 0));
+        timeSlot1.setEndTime(LocalTime.of(10, 30));
+        timeSlot1.setDate(LocalDate.of(2030, 1, 1));
+        timeSlot1.setStatus(TimeSlotStatus.FREE);
+
+        List<TimeSlot> timeSlots = List.of(timeSlot, timeSlot1);
+
+        List<TimeSlotResponse> timeSlotResponses = List.of(
+                new TimeSlotResponse(
+                        timeSlot.getId(),
+                        timeSlot.getDate(),
+                        timeSlot.getStartTime(),
+                        timeSlot.getEndTime(),
+                        timeSlot.getStatus(),
+                        timeSlot.getDoctor().getId()
+                ),
+                new TimeSlotResponse(
+                        timeSlot1.getId(),
+                        timeSlot1.getDate(),
+                        timeSlot1.getStartTime(),
+                        timeSlot1.getEndTime(),
+                        timeSlot1.getStatus(),
+                        timeSlot1.getDoctor().getId()
+                )
+        );
+
+        when(timeSlotService.getAllTimeSlotsByDoctorId(doctor.getId())).thenReturn(timeSlots);
+        when(timeSlotMapper.toTimeSlotResponseList(timeSlots)).thenReturn(timeSlotResponses);
+
+        mockMvc.perform(
+                        get("/api/doctors/1/timeslots")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].date").value("2030-07-11"))
+                .andExpect(jsonPath("$[0].startTime").value("11:00"))
+                .andExpect(jsonPath("$[0].endTime").value("11:30"))
+                .andExpect(jsonPath("$[0].doctorId").value(1L))
+                .andExpect(jsonPath("$[0].status").value("FREE"))
+                .andExpect(jsonPath("$[1].date").value("2030-01-01"))
+                .andExpect(jsonPath("$[1].startTime").value("10:00"))
+                .andExpect(jsonPath("$[1].endTime").value("10:30"))
+                .andExpect(jsonPath("$[1].doctorId").value(1L))
+                .andExpect(jsonPath("$[1].status").value("FREE"));
+
+        verify(timeSlotMapper, times(1)).toTimeSlotResponseList(timeSlots);
+        verify(timeSlotService, times(1)).getAllTimeSlotsByDoctorId(doctor.getId());
+    }
+
+    @Test
+    public void getAllTimeSlotsByDoctorId_shouldReturnEmptyListWhenDoctorHasNoTimeSlots() throws Exception {
+
+        List<TimeSlot> timeSlots = List.of();
+        List<TimeSlotResponse> timeSlotResponses = List.of();
+
+        when(timeSlotService.getAllTimeSlotsByDoctorId(doctor.getId())).thenReturn(timeSlots);
+        when(timeSlotMapper.toTimeSlotResponseList(timeSlots)).thenReturn(timeSlotResponses);
+
+        mockMvc.perform(
+                        get("/api/doctors/1/timeslots")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+
+        verify(timeSlotMapper, times(1)).toTimeSlotResponseList(timeSlots);
+        verify(timeSlotService, times(1)).getAllTimeSlotsByDoctorId(doctor.getId());
     }
 }
