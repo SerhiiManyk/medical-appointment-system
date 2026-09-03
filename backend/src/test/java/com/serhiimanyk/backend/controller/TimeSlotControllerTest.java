@@ -6,6 +6,7 @@ import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.TimeSlot;
 import com.serhiimanyk.backend.enums.TimeSlotStatus;
 import com.serhiimanyk.backend.exception.InvalidTimeSlotException;
+import com.serhiimanyk.backend.exception.TimeSlotNotFoundException;
 import com.serhiimanyk.backend.handler.GlobalExceptionHandler;
 import com.serhiimanyk.backend.mapper.TimeSlotMapper;
 import com.serhiimanyk.backend.service.TimeSlotService;
@@ -336,5 +337,39 @@ public class TimeSlotControllerTest {
 
         verify(timeSlotMapper, times(1)).toTimeSlotResponseList(timeSlots);
         verify(timeSlotService, times(1)).getAvailableTimeSlotsByDoctorId(doctor.getId());
+    }
+
+    @Test
+    public void getTimeSlotById_shouldReturnTimeSlotSuccessfully()  throws Exception {
+
+        when(timeSlotService.getTimeSlotById(doctor.getId(), timeSlot.getId())).thenReturn(timeSlot);
+        when(timeSlotMapper.toTimeSlotResponse(timeSlot)).thenReturn(timeSlotResponse);
+
+        mockMvc.perform(
+                get("/api/doctors/1/timeslots/1")
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.date").value("2030-07-11"))
+                .andExpect(jsonPath("$.startTime").value("11:00"))
+                .andExpect(jsonPath("$.endTime").value("11:30"))
+                .andExpect(jsonPath("$.doctorId").value(1L))
+                .andExpect(jsonPath("$.status").value("FREE"));
+
+        verify(timeSlotMapper, times(1)).toTimeSlotResponse(timeSlot);
+        verify(timeSlotService, times(1)).getTimeSlotById(doctor.getId(), timeSlot.getId());
+    }
+
+    @Test
+    public void getTimeSlotById_shouldReturn404WhenTimeSlotNotFound()  throws Exception {
+
+        when(timeSlotService.getTimeSlotById(doctor.getId(), timeSlot.getId())).thenThrow(new TimeSlotNotFoundException("Timeslot not found."));
+
+        mockMvc.perform(
+                get("/api/doctors/1/timeslots/1")
+        )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Timeslot not found."));
+
+        verify(timeSlotService, times(1)).getTimeSlotById(doctor.getId(), timeSlot.getId());
     }
 }
