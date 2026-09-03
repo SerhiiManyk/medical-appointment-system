@@ -28,8 +28,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -444,5 +443,32 @@ public class TimeSlotControllerTest {
 
         verify(timeSlotMapper, times(1)).toTimeSlotResponseList(timeSlots);
         verify(timeSlotService, times(1)).getAvailableTimeSlotsByDateAndDoctorId(doctor.getId(),timeSlot.getDate());
+    }
+
+    @Test
+    public void deleteTimeSlotById_shouldDeleteTimeSlotSuccessfully()  throws Exception {
+
+        mockMvc.perform(
+                        delete("/api/doctors/1/timeslots/1")
+                )
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+
+        verify(timeSlotService,times(1)).deleteTimeSlot(doctor.getId(), timeSlot.getId());
+    }
+
+    @Test
+    public void deleteTimeSlotById_shouldReturn404WhenTimeSlotNotFound() throws Exception {
+
+        doThrow(new TimeSlotNotFoundException("TimeSlot with id " + timeSlot.getId() + " is not found."))
+                .when(timeSlotService).deleteTimeSlot(doctor.getId(), timeSlot.getId());
+
+        mockMvc.perform(
+                delete("/api/doctors/1/timeslots/1")
+        )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("TimeSlot with id " + timeSlot.getId() + " is not found."));
+
+        verify(timeSlotService, times(1)).deleteTimeSlot(doctor.getId(), timeSlot.getId());
     }
 }
