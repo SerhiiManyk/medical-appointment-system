@@ -5,6 +5,7 @@ import com.serhiimanyk.backend.dto.response.TimeSlotResponse;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.TimeSlot;
 import com.serhiimanyk.backend.enums.TimeSlotStatus;
+import com.serhiimanyk.backend.exception.InvalidTimeSlotException;
 import com.serhiimanyk.backend.handler.GlobalExceptionHandler;
 import com.serhiimanyk.backend.mapper.TimeSlotMapper;
 import com.serhiimanyk.backend.service.TimeSlotService;
@@ -104,6 +105,85 @@ public class TimeSlotControllerTest {
 
         verify(timeSlotMapper, times(1)).toTimeSlot(any(TimeSlotRequest.class));
         verify(timeSlotMapper, times(1)).toTimeSlotResponse(timeSlot);
+        verify(timeSlotService, times(1)).createTimeSlot(doctor.getId(), timeSlot);
+    }
+
+    @Test
+    public void createTimeSlot_shouldReturn400WhenEndTimeIsBeforeStartTime() throws Exception {
+
+        timeSlot.setEndTime(LocalTime.of(11, 0));
+        timeSlot.setStartTime(LocalTime.of(11, 30));
+
+        when(timeSlotMapper.toTimeSlot(any(TimeSlotRequest.class))).thenReturn(timeSlot);
+        when(timeSlotService.createTimeSlot(doctor.getId(), timeSlot)).thenThrow(new InvalidTimeSlotException(
+                "Time slot end time is before time slot start time."
+        ));
+
+        mockMvc.perform(
+                post("/api/doctors/1/timeslots")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                        {
+                                        "date": "2030-07-11",
+                                        "startTime": "11:30",
+                                        "endTime": "11:00"
+                                        }
+                                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Time slot end time is before time slot start time."));
+        verify(timeSlotMapper, times(1)).toTimeSlot(any(TimeSlotRequest.class));
+        verify(timeSlotService, times(1)).createTimeSlot(doctor.getId(), timeSlot);
+    }
+
+    @Test
+    public void createTimeSlot_shouldReturn400WhenDateIsInThePast() throws Exception {
+
+        timeSlot.setDate(LocalDate.of(2000, 1, 1));
+
+        when(timeSlotMapper.toTimeSlot(any(TimeSlotRequest.class))).thenReturn(timeSlot);
+        when(timeSlotService.createTimeSlot(doctor.getId(), timeSlot)).thenThrow(new InvalidTimeSlotException(
+                "Time slot date is before time slot start date."
+        ));
+
+        mockMvc.perform(
+                        post("/api/doctors/1/timeslots")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                        "date": "2000-01-01",
+                                        "startTime": "11:00",
+                                        "endTime": "11:30"
+                                        }
+                                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Time slot date is before time slot start date."));
+
+        verify(timeSlotMapper, times(1)).toTimeSlot(any(TimeSlotRequest.class));
+        verify(timeSlotService, times(1)).createTimeSlot(doctor.getId(), timeSlot);
+    }
+
+    @Test
+    public void createTimeSlot_shouldReturn400WhenTimeSlotAlreadyExists() throws Exception {
+
+        when(timeSlotMapper.toTimeSlot(any(TimeSlotRequest.class))).thenReturn(timeSlot);
+        when(timeSlotService.createTimeSlot(doctor.getId(), timeSlot)).thenThrow(new InvalidTimeSlotException(
+                "Time slot already exists."
+        ));
+
+        mockMvc.perform(
+                        post("/api/doctors/1/timeslots")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                        "date": "2030-07-11",
+                                        "startTime": "11:00",
+                                        "endTime": "11:30"
+                                        }
+                                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Time slot already exists."));
+
+        verify(timeSlotMapper, times(1)).toTimeSlot(any(TimeSlotRequest.class));
         verify(timeSlotService, times(1)).createTimeSlot(doctor.getId(), timeSlot);
     }
 }
