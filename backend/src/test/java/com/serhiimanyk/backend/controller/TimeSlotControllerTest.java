@@ -471,4 +471,101 @@ public class TimeSlotControllerTest {
 
         verify(timeSlotService, times(1)).deleteTimeSlot(doctor.getId(), timeSlot.getId());
     }
+
+    @Test
+    public void blockTimeSlot_shouldBlockTimeSlotSuccessfully() throws Exception {
+
+        timeSlot.setStatus(TimeSlotStatus.BLOCKED);
+
+        TimeSlotResponse blockedTimeSlotResponse = new TimeSlotResponse(
+                timeSlot.getId(),
+                timeSlot.getDate(),
+                timeSlot.getStartTime(),
+                timeSlot.getEndTime(),
+                timeSlot.getStatus(),
+                timeSlot.getDoctor().getId()
+        );
+
+        when(timeSlotService.blockTimeSlot(doctor.getId(), timeSlot.getId())).thenReturn(timeSlot);
+        when(timeSlotMapper.toTimeSlotResponse(timeSlot)).thenReturn(blockedTimeSlotResponse);
+
+        mockMvc.perform(
+                patch("/api/doctors/1/timeslots/1/block")
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.date").value("2030-07-11"))
+                .andExpect(jsonPath("$.startTime").value("11:00"))
+                .andExpect(jsonPath("$.endTime").value("11:30"))
+                .andExpect(jsonPath("$.doctorId").value(1L))
+                .andExpect(jsonPath("$.status").value("BLOCKED"));
+
+        verify(timeSlotMapper, times(1)).toTimeSlotResponse(timeSlot);
+        verify(timeSlotService, times(1)).blockTimeSlot(doctor.getId(), timeSlot.getId());
+    }
+
+    @Test
+    public void blockTimeSlot_shouldReturn404WhenTimeSlotNotFound() throws Exception {
+
+        when(timeSlotService.blockTimeSlot(doctor.getId(), timeSlot.getId())).thenThrow(new TimeSlotNotFoundException(
+                "TimeSlot with id " + timeSlot.getId() + " is not found."));
+
+        mockMvc.perform(
+                patch("/api/doctors/1/timeslots/1/block")
+        )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("TimeSlot with id " + timeSlot.getId() + " is not found."));
+
+        verify(timeSlotService, times(1)).blockTimeSlot(doctor.getId(), timeSlot.getId());
+    }
+
+    @Test
+    public void createTimeSlot_shouldReturn400WhenDateIsNull() throws Exception {
+
+        mockMvc.perform(
+                post("/api/doctors/1/timeslots")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                        {
+                                        "startTime": "11:00",
+                                        "endTime": "11:30"
+                                        }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(timeSlotMapper, timeSlotService);
+    }
+
+    @Test
+    public void createTimeSlot_shouldReturn400WhenStartTimeIsNull() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/doctors/1/timeslots")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                        "date": "2030-07-11",
+                                        "endTime": "11:30"
+                                        }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(timeSlotMapper, timeSlotService);
+    }
+
+    @Test
+    public void createTimeSlot_shouldReturn400WhenEndTimeIsNull() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/doctors/1/timeslots")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                        "date": "2030-07-11",
+                                        "startTime": "11:00"
+                                        }
+                                        """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(timeSlotMapper, timeSlotService);
+    }
 }
