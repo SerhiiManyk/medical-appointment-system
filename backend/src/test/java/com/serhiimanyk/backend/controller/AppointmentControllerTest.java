@@ -43,6 +43,7 @@ public class AppointmentControllerTest {
     private TimeSlot timeSlot;
     private AppointmentResponse appointmentResponse;
     private AppointmentCreateRequest appointmentCreateRequest;
+    private List<Appointment>  appointmentList;
 
     @InjectMocks
     private AppointmentController appointmentController;
@@ -111,6 +112,59 @@ public class AppointmentControllerTest {
         appointmentCreateRequest.setPatientId(patient.getId());
         appointmentCreateRequest.setDoctorId(doctor.getId());
         appointmentCreateRequest.setTimeSlotId(timeSlot.getId());
+    }
+
+    private  TimeSlot createTimeSlot(){
+        TimeSlot timeSlotForList = new TimeSlot();
+        timeSlotForList.setDoctor(doctor);
+        timeSlotForList.setId(2L);
+        timeSlotForList.setDate(LocalDate.of(2030, 1, 1));
+        timeSlotForList.setStartTime(LocalTime.of(9, 0));
+        timeSlotForList.setEndTime(LocalTime.of(10, 0));
+
+        return timeSlotForList;
+    }
+
+    private List<Appointment> createAppointmentList(){
+
+        Appointment appointment2 = new Appointment();
+        appointment2.setId(2L);
+        appointment2.setDoctor(doctor);
+        appointment2.setPatient(patient);
+        appointment2.setTimeSlot(createTimeSlot());
+        appointment2.setStatus(AppointmentStatus.CREATED);
+        appointment2.setComment("Test comment");
+        appointmentList = List.of(appointment2, appointment);
+        return appointmentList;
+    }
+
+    private List<AppointmentResponse> createAppointmentResponseList(){
+        TimeSlot timeSlot2 = createTimeSlot();
+        Appointment appointment2 = appointmentList.getFirst();
+
+        List<AppointmentResponse> appointmentResponses = List.of(
+                new AppointmentResponse(
+                        appointment2.getId(),
+
+                        patient.getId(),
+                        patient.getFirstName(),
+                        patient.getLastName(),
+
+                        doctor.getId(),
+                        doctor.getFirstName(),
+                        doctor.getLastName(),
+                        doctor.getSpecialization(),
+
+                        timeSlot2.getId(),
+                        timeSlot2.getDate(),
+                        timeSlot2.getStartTime(),
+                        timeSlot2.getEndTime(),
+
+                        appointment2.getStatus(),
+                        appointment2.getComment()),
+
+                appointmentResponse);
+        return appointmentResponses;
     }
 
     @Test
@@ -196,45 +250,8 @@ public class AppointmentControllerTest {
     @Test
     public void getAppointmentsByPatientId_shouldReturnAppointmentsSuccessfully() throws Exception {
 
-        TimeSlot timeSlot2 = new TimeSlot();
-        timeSlot2.setDoctor(doctor);
-        timeSlot2.setId(2L);
-        timeSlot2.setDate(LocalDate.of(2030, 1, 1));
-        timeSlot2.setStartTime(LocalTime.of(9, 0));
-        timeSlot2.setEndTime(LocalTime.of(10, 0));
-
-        Appointment appointment2 = new Appointment();
-        appointment2.setId(2L);
-        appointment2.setDoctor(doctor);
-        appointment2.setPatient(patient);
-        appointment2.setTimeSlot(timeSlot2);
-        appointment2.setStatus(AppointmentStatus.CREATED);
-        appointment2.setComment("Test comment");
-
-        List<Appointment> appointments = List.of(appointment2, appointment);
-
-        List<AppointmentResponse> appointmentResponses = List.of(
-                new AppointmentResponse(
-                        appointment2.getId(),
-
-                        patient.getId(),
-                        patient.getFirstName(),
-                        patient.getLastName(),
-
-                        doctor.getId(),
-                        doctor.getFirstName(),
-                        doctor.getLastName(),
-                        doctor.getSpecialization(),
-
-                        timeSlot2.getId(),
-                        timeSlot2.getDate(),
-                        timeSlot2.getStartTime(),
-                        timeSlot2.getEndTime(),
-
-                        appointment2.getStatus(),
-                        appointment2.getComment()),
-
-                appointmentResponse);
+        List<Appointment> appointments = createAppointmentList();
+        List<AppointmentResponse> appointmentResponses = createAppointmentResponseList();
 
         when(appointmentService.getAppointmentsByPatientId(patient.getId())).thenReturn(appointments);
         when(appointmentMapper.toResponseList(appointments)).thenReturn(appointmentResponses);
@@ -292,6 +309,72 @@ public class AppointmentControllerTest {
                 .andExpect(jsonPath("$").isEmpty());
 
         verify(appointmentService, times(1)).getAppointmentsByPatientId(1L);
+        verify(appointmentMapper, times(1)).toResponseList(appointments);
+    }
+
+    @Test
+    public void getAppointmentsByDoctorId_shouldReturnAppointmentsSuccessfully()  throws Exception {
+
+        List<Appointment> appointments = createAppointmentList();
+        List<AppointmentResponse> appointmentResponses = createAppointmentResponseList();
+
+        when(appointmentService.getAppointmentsByDoctorId(doctor.getId())).thenReturn(appointments);
+        when(appointmentMapper.toResponseList(appointments)).thenReturn(appointmentResponses);
+
+        mockMvc.perform(
+                        get("/api/appointments/doctor/" + doctor.getId())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(2L))
+                .andExpect(jsonPath("$[0].patientId").value(1L))
+                .andExpect(jsonPath("$[0].patientFirstName").value("John"))
+                .andExpect(jsonPath("$[0].patientLastName").value("Doe"))
+                .andExpect(jsonPath("$[0].doctorId").value(1L))
+                .andExpect(jsonPath("$[0].doctorFirstName").value("Doctor"))
+                .andExpect(jsonPath("$[0].doctorLastName").value("Watson"))
+                .andExpect(jsonPath("$[0].specialization").value("FAMILY_DOCTOR"))
+                .andExpect(jsonPath("$[0].timeSlotId").value(2L))
+                .andExpect(jsonPath("$[0].date").value("2030-01-01"))
+                .andExpect(jsonPath("$[0].startTime").value("09:00"))
+                .andExpect(jsonPath("$[0].endTime").value("10:00"))
+                .andExpect(jsonPath("$[0].status").value("CREATED"))
+                .andExpect(jsonPath("$[0].comment").value("Test comment"))
+
+                .andExpect(jsonPath("$[1].id").value(1L))
+                .andExpect(jsonPath("$[1].patientId").value(1L))
+                .andExpect(jsonPath("$[1].patientFirstName").value("John"))
+                .andExpect(jsonPath("$[1].patientLastName").value("Doe"))
+                .andExpect(jsonPath("$[1].doctorId").value(1L))
+                .andExpect(jsonPath("$[1].doctorFirstName").value("Doctor"))
+                .andExpect(jsonPath("$[1].doctorLastName").value("Watson"))
+                .andExpect(jsonPath("$[1].specialization").value("FAMILY_DOCTOR"))
+                .andExpect(jsonPath("$[1].timeSlotId").value(1L))
+                .andExpect(jsonPath("$[1].date").value("2030-01-01"))
+                .andExpect(jsonPath("$[1].startTime").value("08:00"))
+                .andExpect(jsonPath("$[1].endTime").value("09:00"))
+                .andExpect(jsonPath("$[1].status").value("CREATED"))
+                .andExpect(jsonPath("$[1].comment").value("Test comment"));
+
+        verify(appointmentService, times(1)).getAppointmentsByDoctorId(1L);
+        verify(appointmentMapper, times(1)).toResponseList(appointments);
+    }
+
+    @Test
+    public void getAppointmentsByDoctorId_shouldReturnEmptyList() throws Exception {
+
+        List<Appointment> appointments = List.of();
+        List<AppointmentResponse> appointmentResponses = List.of();
+
+        when(appointmentService.getAppointmentsByDoctorId(doctor.getId())).thenReturn(appointments);
+        when(appointmentMapper.toResponseList(appointments)).thenReturn(appointmentResponses);
+
+        mockMvc.perform(
+                get("/api/appointments/doctor/" + doctor.getId())
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+
+        verify(appointmentService, times(1)).getAppointmentsByDoctorId(doctor.getId());
         verify(appointmentMapper, times(1)).toResponseList(appointments);
     }
 }
