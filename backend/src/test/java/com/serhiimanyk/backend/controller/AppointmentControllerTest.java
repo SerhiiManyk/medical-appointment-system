@@ -29,8 +29,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -376,5 +375,33 @@ public class AppointmentControllerTest {
 
         verify(appointmentService, times(1)).getAppointmentsByDoctorId(doctor.getId());
         verify(appointmentMapper, times(1)).toResponseList(appointments);
+    }
+
+    @Test
+    public void deleteAppointmentById_shouldDeleteAppointmentSuccessfully()  throws Exception {
+
+        mockMvc.perform(
+                        delete("/api/appointments/1")
+                )
+                .andExpect(status().isNoContent());
+
+        verify(appointmentService, times(1)).deleteAppointmentById(appointment.getId());
+        verify(appointmentMapper, never()).toResponseList(any());
+    }
+
+    @Test
+    public void deleteAppointmentById_shouldReturn404WhenAppointmentNotFound() throws Exception {
+
+        doThrow(new AppointmentNotFoundException("Appointment not found"))
+                .when(appointmentService).deleteAppointmentById(appointment.getId());
+
+        mockMvc.perform(
+                delete("/api/appointments/1")
+        )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Appointment not found"));
+
+        verify(appointmentService, times(1)).deleteAppointmentById(appointment.getId());
+        verifyNoInteractions(appointmentMapper);
     }
 }
