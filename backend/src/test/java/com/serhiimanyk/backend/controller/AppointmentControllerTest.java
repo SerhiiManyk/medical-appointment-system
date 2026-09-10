@@ -475,5 +475,73 @@ public class AppointmentControllerTest {
     }
 
     @Test
-    public void completeAppointmentById_shouldCompleteAppointmentSuccessfully() throws Exception {}
+    public void completeAppointmentById_shouldCompleteAppointmentSuccessfully() throws Exception {
+
+        appointment.setStatus(AppointmentStatus.COMPLETED);
+        appointmentResponse.setStatus(AppointmentStatus.COMPLETED);
+
+        when(appointmentService.completeAppointment(appointment.getId())).thenReturn(appointment);
+        when(appointmentMapper.toResponse(appointment)).thenReturn(appointmentResponse);
+
+        mockMvc.perform(
+                        patch("/api/appointments/1/complete")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.patientId").value(1L))
+                .andExpect(jsonPath("$.patientFirstName").value("John"))
+                .andExpect(jsonPath("$.patientLastName").value("Doe"))
+                .andExpect(jsonPath("$.doctorId").value(1L))
+                .andExpect(jsonPath("$.doctorFirstName").value("Doctor"))
+                .andExpect(jsonPath("$.doctorLastName").value("Watson"))
+                .andExpect(jsonPath("$.specialization").value("FAMILY_DOCTOR"))
+                .andExpect(jsonPath("$.timeSlotId").value(1L))
+                .andExpect(jsonPath("$.date").value("2030-01-01"))
+                .andExpect(jsonPath("$.startTime").value("08:00"))
+                .andExpect(jsonPath("$.endTime").value("09:00"))
+                .andExpect(jsonPath("$.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.comment").value("Test comment"));
+
+        verify(appointmentService, times(1)).completeAppointment(appointment.getId());
+        verify(appointmentMapper, times(1)).toResponse(appointment);
+    }
+
+    @Test
+    public void completeAppointmentById_shouldReturn404WhenAppointmentNotFound() throws Exception {
+
+        when(appointmentService.completeAppointment(appointment.getId())).thenThrow(new AppointmentNotFoundException("Appointment not found"));
+
+        mockMvc.perform(
+                        patch("/api/appointments/1/complete")
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Appointment not found"));
+
+        verify(appointmentService, times(1)).completeAppointment(appointment.getId());
+        verifyNoInteractions(appointmentMapper);
+    }
+
+    @Test
+    public void completeAppointmentById_shouldReturn400WhenAppointmentAlreadyCancelledOrCompleted() throws Exception {
+
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+        appointmentResponse.setStatus(AppointmentStatus.CANCELLED);
+
+        when(appointmentService.completeAppointment(appointment.getId())).thenThrow(
+                new AppointmentAlreadyFinishedException("Appointment is already cancelled or completed."));
+
+        mockMvc.perform(
+                        patch("/api/appointments/1/complete")
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Appointment is already cancelled or completed."));
+
+        verify(appointmentService, times(1)).completeAppointment(appointment.getId());
+        verifyNoInteractions(appointmentMapper);
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldRescheduleAppointmentSuccessfully() throws Exception {
+
+    }
 }
