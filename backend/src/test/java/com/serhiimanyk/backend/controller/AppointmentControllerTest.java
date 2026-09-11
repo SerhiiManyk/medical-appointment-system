@@ -204,6 +204,123 @@ public class AppointmentControllerTest {
     }
 
     @Test
+    public void createAppointment_shouldReturn404WhenPatientNotFound() throws Exception {
+
+        when(appointmentService.createAppointment(any(AppointmentCreateRequest.class))).thenThrow(
+                new PatientNotFoundException("Patient with id " + appointmentCreateRequest.getPatientId() + " is not found"));
+
+        mockMvc.perform(
+                        post("/api/appointments")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                        "patientId":"1",
+                                        "doctorId":"1",
+                                        "timeSlotId":"1"
+                                         }
+                                        """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Patient with id " + appointmentCreateRequest.getPatientId() + " is not found"));
+
+        verify(appointmentService, times(1)).createAppointment(any(AppointmentCreateRequest.class));
+        verifyNoInteractions(appointmentMapper);
+    }
+
+    @Test
+    public void createAppointment_shouldReturn404WhenDoctorNotFound() throws Exception {
+
+        when(appointmentService.createAppointment(any(AppointmentCreateRequest.class))).thenThrow(
+                new DoctorNotFoundException("Doctor with id " + appointmentCreateRequest.getDoctorId() + " is not found"));
+
+        mockMvc.perform(
+                        post("/api/appointments")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                        "patientId":"1",
+                                        "doctorId":"1",
+                                        "timeSlotId":"1"
+                                         }
+                                        """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Doctor with id " + appointmentCreateRequest.getDoctorId() + " is not found"));
+
+        verify(appointmentService, times(1)).createAppointment(any(AppointmentCreateRequest.class));
+        verifyNoInteractions(appointmentMapper);
+    }
+
+    @Test
+    public void createAppointment_shouldReturn404WhenTimeSlotNotFound() throws Exception {
+
+        when(appointmentService.createAppointment(any(AppointmentCreateRequest.class))).thenThrow(
+                new TimeSlotNotFoundException("Timeslot with id " + appointmentCreateRequest.getTimeSlotId() + " is not found"));
+
+        mockMvc.perform(
+                        post("/api/appointments")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                        "patientId":"1",
+                                        "doctorId":"1",
+                                        "timeSlotId":"1"
+                                         }
+                                        """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Timeslot with id " + appointmentCreateRequest.getTimeSlotId() + " is not found"));
+
+        verify(appointmentService, times(1)).createAppointment(any(AppointmentCreateRequest.class));
+        verifyNoInteractions(appointmentMapper);
+    }
+
+    @Test
+    public void createAppointment_shouldReturn400WhenTimeSlotDoesNotBelongToDoctor() throws Exception {
+
+        when(appointmentService.createAppointment(any(AppointmentCreateRequest.class))).thenThrow(
+                new TimeSlotDoesNotBelongToDoctorException(
+                        "TimeSlot with id " + appointmentCreateRequest.getTimeSlotId() + " does not belong to doctor with id " + appointmentCreateRequest.getDoctorId()));
+
+        mockMvc.perform(
+                        post("/api/appointments")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                        "patientId":"1",
+                                        "doctorId":"1",
+                                        "timeSlotId":"2"
+                                         }
+                                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "TimeSlot with id " + appointmentCreateRequest.getTimeSlotId() + " does not belong to doctor with id " + appointmentCreateRequest.getDoctorId()));
+
+        verify(appointmentService, times(1)).createAppointment(any(AppointmentCreateRequest.class));
+        verifyNoInteractions(appointmentMapper);
+    }
+
+    @Test
+    public void createAppointment_shouldReturn400WhenTimeSlotIsInvalid() throws Exception {
+
+        when(appointmentService.createAppointment(any(AppointmentCreateRequest.class))).thenThrow(
+                new InvalidTimeSlotException("TimeSlot is not available."));
+
+        mockMvc.perform(
+                        post("/api/appointments")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                         {
+                                        "patientId":"1",
+                                        "doctorId":"1",
+                                        "timeSlotId":"2"
+                                         }
+                                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("TimeSlot is not available."));
+
+        verify(appointmentService, times(1)).createAppointment(any(AppointmentCreateRequest.class));
+        verifyNoInteractions(appointmentMapper);
+    }
+
+    @Test
     public void getAppointmentById_shouldReturnAppointmentSuccessfully() throws Exception {
 
         when(appointmentService.getAppointmentById(1L)).thenReturn(appointment);
@@ -582,7 +699,7 @@ public class AppointmentControllerTest {
     }
 
     @Test
-    public void rescheduleAppointment_shouldReturn404WhenAppointmentNotFound()  throws Exception {
+    public void rescheduleAppointment_shouldReturn404WhenAppointmentNotFound() throws Exception {
 
         TimeSlot timeSlot2 = new TimeSlot();
         timeSlot2.setDoctor(doctor);
@@ -602,7 +719,7 @@ public class AppointmentControllerTest {
     }
 
     @Test
-    public void rescheduleAppointment_shouldReturn404WhenTimeSlotNotFound()   throws Exception {
+    public void rescheduleAppointment_shouldReturn404WhenTimeSlotNotFound() throws Exception {
 
         when(appointmentService.rescheduleAppointment(appointment.getId(), 999L)).thenThrow(
                 new TimeSlotNotFoundException("Time slot with id 999 not found"));
@@ -630,8 +747,8 @@ public class AppointmentControllerTest {
                 "TimeSlot with id " + timeSlot2.getId() + " does not belong to doctor with id " + appointment.getDoctor().getId()));
 
         mockMvc.perform(
-                patch("/api/appointments/1/reschedule?timeSlotId=2")
-        )
+                        patch("/api/appointments/1/reschedule?timeSlotId=2")
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(
                         "TimeSlot with id " + timeSlot2.getId() + " does not belong to doctor with id " + appointment.getDoctor().getId()));
@@ -652,8 +769,8 @@ public class AppointmentControllerTest {
                 new InvalidTimeSlotException("Timeslot with id " + timeSlot2.getId() + " is already in progress."));
 
         mockMvc.perform(
-                patch("/api/appointments/1/reschedule?timeSlotId=2")
-        )
+                        patch("/api/appointments/1/reschedule?timeSlotId=2")
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Timeslot with id " + timeSlot2.getId() + " is already in progress."));
 
@@ -662,7 +779,7 @@ public class AppointmentControllerTest {
     }
 
     @Test
-    public void rescheduleAppointment_shouldReturn400WhenAppointmentAlreadyCancelledOrCompleted()  throws Exception {
+    public void rescheduleAppointment_shouldReturn400WhenAppointmentAlreadyCancelledOrCompleted() throws Exception {
 
         TimeSlot timeSlot2 = new TimeSlot();
         timeSlot2.setDoctor(doctor);
@@ -684,7 +801,7 @@ public class AppointmentControllerTest {
     }
 
     @Test
-    public void rescheduleAppointment_shouldReturn400WhenTimeSlotIsAlreadyInUse()  throws Exception {
+    public void rescheduleAppointment_shouldReturn400WhenTimeSlotIsAlreadyInUse() throws Exception {
 
         TimeSlot timeSlot2 = new TimeSlot();
         timeSlot2.setDoctor(doctor);
@@ -705,9 +822,9 @@ public class AppointmentControllerTest {
     }
 
     @Test
-    public void rescheduleAppointment_shouldReturn400WhenReschedulingToTheSameTimeSlot()   throws Exception {
+    public void rescheduleAppointment_shouldReturn400WhenReschedulingToTheSameTimeSlot() throws Exception {
 
-        when(appointmentService.rescheduleAppointment(appointment.getId(),timeSlot.getId())).thenThrow(
+        when(appointmentService.rescheduleAppointment(appointment.getId(), timeSlot.getId())).thenThrow(
                 new InvalidTimeSlotException("Timeslot with id " + timeSlot.getId() + " is already in progress."));
 
         mockMvc.perform(
@@ -717,6 +834,27 @@ public class AppointmentControllerTest {
                 .andExpect(jsonPath("$.message").value("Timeslot with id " + timeSlot.getId() + " is already in progress."));
 
         verify(appointmentService, times(1)).rescheduleAppointment(appointment.getId(), timeSlot.getId());
+        verifyNoInteractions(appointmentMapper);
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldReturn400WhenTimeSlotIsInvalid() throws Exception {
+
+        TimeSlot timeSlot2 = new TimeSlot();
+        timeSlot2.setDoctor(doctor);
+        timeSlot2.setId(2L);
+        timeSlot2.setDate(LocalDate.now().minusDays(1));
+
+        when(appointmentService.rescheduleAppointment(appointment.getId(), timeSlot2.getId())).thenThrow(
+                new InvalidTimeSlotException("TimeSlot is not available."));
+
+        mockMvc.perform(
+                        patch("/api/appointments/1/reschedule?timeSlotId=2")
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("TimeSlot is not available."));
+
+        verify(appointmentService, times(1)).rescheduleAppointment(appointment.getId(), timeSlot2.getId());
         verifyNoInteractions(appointmentMapper);
     }
 }
