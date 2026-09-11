@@ -4,6 +4,7 @@ import com.serhiimanyk.backend.enums.Specialization;
 import lombok.*;
 
 @Getter
+@Setter
 @Builder
 @AllArgsConstructor
 public class DoctorResponse {
