@@ -47,6 +47,5 @@ public class DoctorMapper {
         doctor.setEmail(doctorRequest.getEmail());
         doctor.setPassword(doctorRequest.getPassword());
         doctor.setPhoneNumber(doctorRequest.getPhoneNumber());
-
     }
 }
