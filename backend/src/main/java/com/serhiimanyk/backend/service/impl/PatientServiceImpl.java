@@ -8,6 +8,7 @@ import com.serhiimanyk.backend.mapper.PatientMapper;
 import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class PatientServiceImpl implements PatientService {
 
     private final PatientRepository patientRepository;
     private final PatientMapper patientMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Patient getPatientByEmail(String email) {
@@ -46,6 +48,9 @@ public class PatientServiceImpl implements PatientService {
         if (patientRepository.existsByEmail(patient.getEmail())) {
             throw new EmailAlreadyExistsException("Patient with email " + patient.getEmail() + " already exists");
         }
+
+        patient.setPassword(passwordEncoder.encode(patient.getPassword()));
+
         return patientRepository.save(patient);
     }
 
@@ -64,8 +69,12 @@ public class PatientServiceImpl implements PatientService {
                         "Patient with email " + request.getEmail() + " already exists"
                 );
             }
-
         }
+
+        if(request.getPassword() != null) {
+            patientToUpdate.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
         patientMapper.updatePatientFromRequest(request, patientToUpdate);
 
         return patientRepository.save(patientToUpdate);

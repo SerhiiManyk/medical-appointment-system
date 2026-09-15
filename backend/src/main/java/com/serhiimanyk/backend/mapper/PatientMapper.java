@@ -47,7 +47,6 @@ public class PatientMapper {
         patient.setLastName(patientRequest.getLastName());
         patient.setGender(patientRequest.getGender());
         patient.setEmail(patientRequest.getEmail());
-        patient.setPassword(patientRequest.getPassword());
         patient.setPhoneNumber(patientRequest.getPhoneNumber());
         patient.setDateOfBirth(patientRequest.getDateOfBirth());
     }

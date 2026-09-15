@@ -24,7 +24,6 @@ public class PatientRequest {
     @Size(max = 100)
     private String email;
 
-    @NotBlank(message = "{NotEmpty.patient.password}")
     @Size(min = 6, max = 100, message = "{Size.patient.password}")
     private String password;
 
