@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +34,9 @@ public class PatientServiceImplTest {
     PatientRepository patientRepository;
 
     @Mock
+    PasswordEncoder passwordEncoder;
+
+    @Mock
     PatientMapper patientMapper;
 
     @BeforeEach
@@ -40,6 +44,7 @@ public class PatientServiceImplTest {
         patient = new Patient();
         patient.setId(1L);
         patient.setEmail("patient@test.com");
+        patient.setPassword("password");
     }
 
     @Test
@@ -122,13 +127,16 @@ public class PatientServiceImplTest {
     @Test
     public void createPatient_shouldCreatePatientSuccessfully() {
 
+        when(passwordEncoder.encode(patient.getPassword())).thenReturn("password_encoded");
         when(patientRepository.save(patient)).thenReturn(patient);
         when(patientRepository.existsByEmail(patient.getEmail())).thenReturn(false);
 
         Patient result = patientService.createPatient(patient);
 
+        assertEquals("password_encoded", result.getPassword());
         assertEquals(patient, result);
 
+        verify(passwordEncoder, times(1)).encode("password");
         verify(patientRepository, times(1)).existsByEmail(patient.getEmail());
         verify(patientRepository, times(1)).save(patient);
     }
@@ -164,6 +172,7 @@ public class PatientServiceImplTest {
         verify(patientRepository, never()).existsByEmailAndIdNot(patient.getEmail(), patient.getId());
         verify(patientMapper, times(1)).updatePatientFromRequest(updatePatient, patient);
         verify(patientRepository, times(1)).save(patient);
+        verify(passwordEncoder, never()).encode(patient.getPassword());
     }
 
     @Test
@@ -183,6 +192,7 @@ public class PatientServiceImplTest {
         verify(patientRepository, times(1)).existsByEmailAndIdNot(updatePatient.getEmail(), patient.getId());
         verify(patientMapper, times(1)).updatePatientFromRequest(updatePatient, patient);
         verify(patientRepository, times(1)).save(patient);
+        verify(passwordEncoder, never()).encode(patient.getPassword());
     }
 
     @Test
@@ -199,7 +209,7 @@ public class PatientServiceImplTest {
 
         assertEquals("Patient with email " + updatePatient.getEmail() + " already exists", exception.getMessage());
         verify(patientRepository, times(1)).findById(patient.getId());
-        verify(patientRepository,never()).save(any());
+        verify(patientRepository, never()).save(any());
         verify(patientRepository, times(1)).existsByEmailAndIdNot(updatePatient.getEmail(), patient.getId());
     }
 
@@ -212,12 +222,34 @@ public class PatientServiceImplTest {
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.empty());
 
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
-                () ->patientService.updatePatient(updatePatient, patient.getId()));
+                () -> patientService.updatePatient(updatePatient, patient.getId()));
 
         assertEquals("Patient with id " + patient.getId() + " is not found", exception.getMessage());
 
         verify(patientRepository, times(1)).findById(patient.getId());
-        verify(patientRepository,never()).save(any());
+        verify(patientRepository, never()).save(any());
+    }
+
+    @Test
+    public void updatePatient_shouldEncodePasswordWhenPasswordIsProvided(){
+
+        PatientRequest updatePatient = new PatientRequest();
+        updatePatient.setPassword("newPassword");
+
+        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
+        when(passwordEncoder.encode(updatePatient.getPassword())).thenReturn("newPassword_encoded");
+        when(patientRepository.save(patient)).thenReturn(patient);
+
+        Patient result = patientService.updatePatient(updatePatient, patient.getId());
+
+        assertEquals(patient, result);
+        assertEquals("newPassword_encoded", result.getPassword());
+
+        verify(patientRepository, times(1)).findById(patient.getId());
+        verify(patientRepository, never()).existsByEmailAndIdNot(patient.getEmail(), patient.getId());
+        verify(patientMapper, times(1)).updatePatientFromRequest(updatePatient, patient);
+        verify(patientRepository, times(1)).save(patient);
+        verify(passwordEncoder, times(1)).encode(updatePatient.getPassword());
     }
 
     @Test
@@ -242,7 +274,6 @@ public class PatientServiceImplTest {
         assertEquals("Patient with id " + patient.getId() + " is not found", exception.getMessage());
 
         verify(patientRepository, times(1)).findById(patient.getId());
-        verify(patientRepository,never()).delete(any());
+        verify(patientRepository, never()).delete(any());
     }
-
 }
