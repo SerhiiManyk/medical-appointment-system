@@ -2,6 +2,7 @@ package com.serhiimanyk.backend.service.impl;
 
 import com.serhiimanyk.backend.dto.request.DoctorRequest;
 import com.serhiimanyk.backend.entity.Doctor;
+import com.serhiimanyk.backend.enums.Role;
 import com.serhiimanyk.backend.enums.Specialization;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;
 import com.serhiimanyk.backend.exception.EmailAlreadyExistsException;
@@ -9,6 +10,7 @@ import com.serhiimanyk.backend.mapper.DoctorMapper;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.service.DoctorService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ public class DoctorServiceImpl implements DoctorService {
 
     private final DoctorRepository doctorRepository;
     private final DoctorMapper doctorMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Doctor getDoctorByEmail(String email) {
@@ -54,6 +57,11 @@ public class DoctorServiceImpl implements DoctorService {
         if (doctorRepository.existsByEmail(doctor.getEmail())) {
             throw new EmailAlreadyExistsException("Doctor with email " + doctor.getEmail() + " already exists");
         }
+
+        doctor.setPassword(passwordEncoder.encode(doctor.getPassword()));
+
+        doctor.setRole(Role.DOCTOR);
+
         return doctorRepository.save(doctor);
     }
 

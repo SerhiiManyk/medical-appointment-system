@@ -1,6 +1,7 @@
 package com.serhiimanyk.backend.entity;
 
 import com.serhiimanyk.backend.enums.Gender;
+import com.serhiimanyk.backend.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -59,4 +60,9 @@ public class Patient {
     @NotNull(message = "{NotNull.patient.dateOfBirth}")
     @Column(name = "DATE_OF_BIRTH", nullable = false)
     private LocalDate dateOfBirth;
+
+    @NotNull(message = "{NotNull.patient.role}")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ROLE", nullable = false)
+    private Role role;
 }

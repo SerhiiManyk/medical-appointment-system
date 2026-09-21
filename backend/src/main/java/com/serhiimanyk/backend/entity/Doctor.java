@@ -1,5 +1,6 @@
 package com.serhiimanyk.backend.entity;
 
+import com.serhiimanyk.backend.enums.Role;
 import com.serhiimanyk.backend.enums.Specialization;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -54,4 +55,8 @@ public class Doctor {
     @Column(name = "DOCTOR_SPECIALIZATION", nullable = false)
     private Specialization specialization;
 
+    @NotNull(message = "{NotNull.doctor.role}")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ROLE", nullable = false)
+    private Role role;
 }

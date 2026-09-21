@@ -2,6 +2,7 @@ package com.serhiimanyk.backend.service.impl;
 
 import com.serhiimanyk.backend.dto.request.PatientRequest;
 import com.serhiimanyk.backend.entity.Patient;
+import com.serhiimanyk.backend.enums.Role;
 import com.serhiimanyk.backend.exception.EmailAlreadyExistsException;
 import com.serhiimanyk.backend.exception.PatientNotFoundException;
 import com.serhiimanyk.backend.mapper.PatientMapper;
@@ -50,6 +51,8 @@ public class PatientServiceImpl implements PatientService {
         }
 
         patient.setPassword(passwordEncoder.encode(patient.getPassword()));
+
+        patient.setRole(Role.PATIENT);
 
         return patientRepository.save(patient);
     }
