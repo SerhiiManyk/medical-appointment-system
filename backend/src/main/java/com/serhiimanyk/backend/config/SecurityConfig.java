@@ -4,6 +4,7 @@ import com.serhiimanyk.backend.security.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,8 +24,21 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable);
         http.httpBasic(Customizer.withDefaults());
         http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                .requestMatchers("/api/patients").permitAll()
+
+                .requestMatchers(HttpMethod.POST,"/api/patients").permitAll()
+                .requestMatchers(HttpMethod.GET,"/api/patients").hasRole("DOCTOR")
+                .requestMatchers(HttpMethod.GET,"/api/patients/**").hasRole("DOCTOR")
+                .requestMatchers(HttpMethod.PUT,"/api/patients/**").hasRole("DOCTOR")
+                .requestMatchers(HttpMethod.DELETE,"/api/patients/**").hasRole("DOCTOR")
+
+                .requestMatchers(HttpMethod.GET, "/api/doctors").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/doctors/**").permitAll()
+                .requestMatchers(HttpMethod.POST,"/api/doctors").hasRole("DOCTOR")
+                .requestMatchers(HttpMethod.PUT, "/api/doctors/**").hasRole("DOCTOR")
+                .requestMatchers(HttpMethod.DELETE, "/api/doctors/**").hasRole("DOCTOR")
+
                 .requestMatchers("/error").permitAll()
+
                 .anyRequest().authenticated());
         http.authenticationProvider(authenticationProvider);
 
