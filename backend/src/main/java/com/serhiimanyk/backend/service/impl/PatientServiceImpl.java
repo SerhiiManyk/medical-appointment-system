@@ -9,12 +9,16 @@ import com.serhiimanyk.backend.mapper.PatientMapper;
 import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -35,8 +39,15 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public Patient getPatientById(Long id) {
 
-        return patientRepository.findById(id)
-                .orElseThrow(() -> new PatientNotFoundException("Patient with id " + id + " is not found"));
+        Authentication authentication =
+                 SecurityContextHolder.getContext().getAuthentication();
+
+        Collection<? extends GrantedAuthority> authorities =authentication.getAuthorities();
+
+        if (authorities.contains(new SimpleGrantedAuthority("ROLE_DOCTOR")) || isCurrentPatient(id)) {
+            return patientRepository.findById(id)
+                    .orElseThrow(() -> new PatientNotFoundException("Patient with id " + id + " is not found"));
+        }throw new PatientNotFoundException("Patient with id " + id + " is not found");
     }
 
     @Override
@@ -76,7 +87,7 @@ public class PatientServiceImpl implements PatientService {
             }
         }
 
-        if(request.getPassword() != null) {
+        if (request.getPassword() != null) {
             patientToUpdate.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
@@ -102,7 +113,7 @@ public class PatientServiceImpl implements PatientService {
                         "Patient with email " + username + " not found"));
     }
 
-    public boolean isCurrentPatient(Long patientId){
+    public boolean isCurrentPatient(Long patientId) {
 
         Patient authenticatedPatient = getPatientFromAuthentication();
 
