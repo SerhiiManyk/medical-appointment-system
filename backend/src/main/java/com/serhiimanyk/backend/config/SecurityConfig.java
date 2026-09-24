@@ -1,5 +1,6 @@
 package com.serhiimanyk.backend.config;
 
+import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.security.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final PatientRepository patientRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, DaoAuthenticationProvider authenticationProvider) throws Exception {
@@ -25,15 +27,15 @@ public class SecurityConfig {
         http.httpBasic(Customizer.withDefaults());
         http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
 
-                .requestMatchers(HttpMethod.POST,"/api/patients").permitAll()
-                .requestMatchers(HttpMethod.GET,"/api/patients").hasRole("DOCTOR")
-                .requestMatchers(HttpMethod.GET,"/api/patients/**").hasRole("DOCTOR")
-                .requestMatchers(HttpMethod.PUT,"/api/patients/**").hasRole("DOCTOR")
-                .requestMatchers(HttpMethod.DELETE,"/api/patients/**").hasRole("DOCTOR")
+                .requestMatchers(HttpMethod.POST, "/api/patients").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/patients").hasRole("DOCTOR")
+                .requestMatchers(HttpMethod.GET, "/api/patients/**").hasRole("DOCTOR")
+                .requestMatchers(HttpMethod.PUT, "/api/patients/**").hasRole("DOCTOR")
+                .requestMatchers(HttpMethod.DELETE, "/api/patients/**").hasRole("DOCTOR")
 
                 .requestMatchers(HttpMethod.GET, "/api/doctors").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/doctors/**").permitAll()
-                .requestMatchers(HttpMethod.POST,"/api/doctors").hasRole("DOCTOR")
+                .requestMatchers(HttpMethod.POST, "/api/doctors").hasRole("DOCTOR")
                 .requestMatchers(HttpMethod.PUT, "/api/doctors/**").hasRole("DOCTOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/doctors/**").hasRole("DOCTOR")
 
