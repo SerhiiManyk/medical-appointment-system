@@ -9,6 +9,7 @@ import com.serhiimanyk.backend.mapper.PatientMapper;
 import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -37,17 +38,21 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public Patient getPatientById(Long id) {
+    public Patient getPatientById(Long id){
 
         Authentication authentication =
                  SecurityContextHolder.getContext().getAuthentication();
 
         Collection<? extends GrantedAuthority> authorities =authentication.getAuthorities();
 
-        if (authorities.contains(new SimpleGrantedAuthority("ROLE_DOCTOR")) || isCurrentPatient(id)) {
+        if (authorities.contains(new SimpleGrantedAuthority("ROLE_DOCTOR"))) {
             return patientRepository.findById(id)
                     .orElseThrow(() -> new PatientNotFoundException("Patient with id " + id + " is not found"));
-        }throw new PatientNotFoundException("Patient with id " + id + " is not found");
+        }
+        if(isCurrentPatient(id)){
+            return patientRepository.findById(id)
+                    .orElseThrow(() -> new PatientNotFoundException("Patient with id " + id + " is not found"));
+        }throw new AccessDeniedException("Access Denied");
     }
 
     @Override
