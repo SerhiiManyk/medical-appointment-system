@@ -91,9 +91,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleTimeSlotDoesNotBelongToDoctorException(TimeSlotDoesNotBelongToDoctorException exception,
                                                                               HttpServletRequest request) {
 
-        ErrorResponse response = buildErrorResponse(HttpStatus.BAD_REQUEST, exception.getMessage(), request);
+        ErrorResponse response = buildErrorResponse(HttpStatus.FORBIDDEN, exception.getMessage(), request);
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     @ExceptionHandler(TimeSlotNotFoundException.class)
