@@ -94,9 +94,11 @@ public class TimeslotServiceImpl implements TimeSlotService {
     @Override
     public TimeSlot blockTimeSlot(Long doctorId, Long timeSlotId) {
 
+        Doctor autenticatedDoctor = getAuthenticatedDoctor();
+
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId).orElseThrow(() -> new TimeSlotNotFoundException("Timeslot not found."));
 
-        if(!timeSlot.getDoctor().getId().equals(doctorId)) {
+        if(!timeSlot.getDoctor().getId().equals(autenticatedDoctor.getId())) {
             throw new TimeSlotDoesNotBelongToDoctorException("Timeslot with id " + timeSlotId + " does not belong to doctor with id " + doctorId);
         }
         if (timeSlot.getStatus() == TimeSlotStatus.BLOCKED) {
@@ -113,10 +115,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
     @Override
     public void deleteTimeSlot(Long doctorId, Long id) {
 
-        String emailName = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        Doctor autenticatedDoctor = doctorRepository.findByEmail(emailName).orElseThrow(() ->
-                new DoctorNotFoundException("Doctor with email " + emailName + " is not found."));
+        Doctor autenticatedDoctor = getAuthenticatedDoctor();
 
         TimeSlot timeSlot = timeSlotRepository.findById(id).orElseThrow(() -> new TimeSlotNotFoundException("TimeSlot with id " + id + " is not found."));
 
@@ -128,5 +127,13 @@ public class TimeslotServiceImpl implements TimeSlotService {
             throw new InvalidTimeSlotException("Cannot delete booked time slot.");
         }
         timeSlotRepository.delete(timeSlot);
+    }
+
+    private Doctor getAuthenticatedDoctor(){
+
+        String emailName = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        return doctorRepository.findByEmail(emailName).orElseThrow(() ->
+                new DoctorNotFoundException("Doctor with email " + emailName + " is not found."));
     }
 }
