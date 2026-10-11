@@ -11,6 +11,7 @@ import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
 import com.serhiimanyk.backend.service.TimeSlotService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,7 +113,16 @@ public class TimeslotServiceImpl implements TimeSlotService {
     @Override
     public void deleteTimeSlot(Long doctorId, Long id) {
 
+        String emailName = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Doctor autenticatedDoctor = doctorRepository.findByEmail(emailName).orElseThrow(() ->
+                new DoctorNotFoundException("Doctor with email " + emailName + " is not found."));
+
         TimeSlot timeSlot = timeSlotRepository.findById(id).orElseThrow(() -> new TimeSlotNotFoundException("TimeSlot with id " + id + " is not found."));
+
+        if(!timeSlot.getDoctor().getId().equals(autenticatedDoctor.getId())) {
+            throw new TimeSlotDoesNotBelongToDoctorException("Timeslot with id " + id + " does not belong to doctor with id " + doctorId);
+        }
 
         if (timeSlot.getStatus() == TimeSlotStatus.BOOKED) {
             throw new InvalidTimeSlotException("Cannot delete booked time slot.");
