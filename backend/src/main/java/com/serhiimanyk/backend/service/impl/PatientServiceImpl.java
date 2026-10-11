@@ -92,7 +92,7 @@ public class PatientServiceImpl implements PatientService {
             }
         }
 
-        if (request.getPassword() != null) {
+        if (request.getPassword() != null && isCurrentPatient(id)) {
             patientToUpdate.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 

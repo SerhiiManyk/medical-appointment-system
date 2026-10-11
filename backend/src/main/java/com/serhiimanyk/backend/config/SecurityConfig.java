@@ -33,8 +33,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/patients/**").hasAnyRole("DOCTOR","PATIENT")
                 .requestMatchers(HttpMethod.DELETE, "/api/patients/**").hasAnyRole("DOCTOR","PATIENT")
 
-                .requestMatchers(HttpMethod.GET, "/api/doctors").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/doctors/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/doctors").hasAnyRole("DOCTOR","PATIENT")
+                .requestMatchers(HttpMethod.GET, "/api/doctors/**").hasRole("DOCTOR")
                 .requestMatchers(HttpMethod.POST, "/api/doctors").hasRole("DOCTOR")
                 .requestMatchers(HttpMethod.PUT, "/api/doctors/**").hasRole("DOCTOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/doctors/**").hasRole("DOCTOR")
