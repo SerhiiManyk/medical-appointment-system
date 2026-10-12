@@ -1,6 +1,7 @@
 package com.serhiimanyk.backend.controller;
 
-import com.serhiimanyk.backend.dto.request.PatientRequest;
+import com.serhiimanyk.backend.dto.request.PatientCreateRequest;
+import com.serhiimanyk.backend.dto.request.PatientUpdateRequest;
 import com.serhiimanyk.backend.dto.response.PatientResponse;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.enums.Gender;
@@ -69,7 +70,7 @@ public class PatientControllerTest {
                 patient.getDateOfBirth()
         );
 
-        when(patientMapper.toPatient(any(PatientRequest.class))).thenReturn(patient);
+        when(patientMapper.toPatient(any(PatientCreateRequest.class))).thenReturn(patient);
         when(patientMapper.toPatientResponse(patient)).thenReturn(patientResponse);
         when(patientService.createPatient(patient)).thenReturn(patient);
 
@@ -95,7 +96,7 @@ public class PatientControllerTest {
                 .andExpect(jsonPath("$.dateOfBirth").value("1989-07-07"))
                 .andExpect(jsonPath("$.id").value(1));
 
-        verify(patientMapper, times(1)).toPatient(any(PatientRequest.class));
+        verify(patientMapper, times(1)).toPatient(any(PatientCreateRequest.class));
         verify(patientMapper, times(1)).toPatientResponse(patient);
         verify(patientService, times(1)).createPatient(patient);
     }
@@ -230,7 +231,7 @@ public class PatientControllerTest {
                 patientForUpdate.getDateOfBirth()
         );
 
-        when(patientService.updatePatient(any(PatientRequest.class), eq(patient.getId()))).thenReturn(patientForUpdate);
+        when(patientService.updatePatient(any(PatientUpdateRequest.class), eq(patient.getId()))).thenReturn(patientForUpdate);
         when(patientMapper.toPatientResponse(patientForUpdate)).thenReturn(patientResponse);
 
         mockMvc.perform(put("/api/patients/" + patient.getId())
@@ -254,14 +255,14 @@ public class PatientControllerTest {
                 .andExpect(jsonPath("$.dateOfBirth").value("1989-07-07"))
                 .andExpect(jsonPath("$.id").value(1));
 
-        verify(patientService, times(1)).updatePatient(any(PatientRequest.class), eq(patient.getId()));
+        verify(patientService, times(1)).updatePatient(any(PatientUpdateRequest.class), eq(patient.getId()));
         verify(patientMapper, times(1)).toPatientResponse(patientForUpdate);
     }
 
     @Test
     public void updatePatient_shouldReturn404WhenPatientNotFound() throws Exception {
 
-        when(patientService.updatePatient(any(PatientRequest.class), eq(patient.getId()))).thenThrow(new PatientNotFoundException(
+        when(patientService.updatePatient(any(PatientUpdateRequest.class), eq(patient.getId()))).thenThrow(new PatientNotFoundException(
                 "Patient with id " + patient.getId() + " is not found"));
 
         mockMvc.perform(put("/api/patients/" + patient.getId())
@@ -281,7 +282,7 @@ public class PatientControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Patient with id " + patient.getId() + " is not found"));
 
-        verify(patientService, times(1)).updatePatient(any(PatientRequest.class), eq(patient.getId()));
+        verify(patientService, times(1)).updatePatient(any(PatientUpdateRequest.class), eq(patient.getId()));
         verify(patientMapper, never()).toPatientResponse(any());
     }
 

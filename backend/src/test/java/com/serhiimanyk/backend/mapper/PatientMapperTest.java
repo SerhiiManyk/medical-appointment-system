@@ -1,6 +1,7 @@
 package com.serhiimanyk.backend.mapper;
 
-import com.serhiimanyk.backend.dto.request.PatientRequest;
+import com.serhiimanyk.backend.dto.request.PatientCreateRequest;
+import com.serhiimanyk.backend.dto.request.PatientUpdateRequest;
 import com.serhiimanyk.backend.dto.response.PatientResponse;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.enums.Gender;
@@ -77,16 +78,16 @@ public class PatientMapperTest {
     @Test
     public void toPatient_shouldMapPatientRequestToPatient(){
 
-        PatientRequest patientRequest = new PatientRequest();
-        patientRequest.setFirstName("John");
-        patientRequest.setLastName("Doe");
-        patientRequest.setEmail("patient@test.email");
-        patientRequest.setPassword("12345");
-        patientRequest.setPhoneNumber("1234567890");
-        patientRequest.setDateOfBirth(LocalDate.of(1980, 1, 1));
-        patientRequest.setGender(Gender.MALE);
+        PatientCreateRequest patientCreateRequest = new PatientCreateRequest();
+        patientCreateRequest.setFirstName("John");
+        patientCreateRequest.setLastName("Doe");
+        patientCreateRequest.setEmail("patient@test.email");
+        patientCreateRequest.setPassword("12345");
+        patientCreateRequest.setPhoneNumber("1234567890");
+        patientCreateRequest.setDateOfBirth(LocalDate.of(1980, 1, 1));
+        patientCreateRequest.setGender(Gender.MALE);
 
-        Patient resultPatient = patientMapper.toPatient(patientRequest);
+        Patient resultPatient = patientMapper.toPatient(patientCreateRequest);
 
         assertEquals(patient.getFirstName(), resultPatient.getFirstName());
         assertEquals(patient.getLastName(), resultPatient.getLastName());
@@ -100,23 +101,23 @@ public class PatientMapperTest {
     @Test
     public void updatePatientFromRequest_shouldUpdatePatientFields(){
 
-        PatientRequest patientRequest = new PatientRequest();
-        patientRequest.setFirstName("John");
-        patientRequest.setLastName("Doe");
-        patientRequest.setEmail("patientChange@test.email");
-        patientRequest.setPassword("12345");
-        patientRequest.setPhoneNumber("0987654321");
-        patientRequest.setDateOfBirth(LocalDate.of(1980, 1, 1));
-        patientRequest.setGender(Gender.MALE);
+        PatientUpdateRequest patientUpdateRequest = new PatientUpdateRequest();
+        patientUpdateRequest.setFirstName("John");
+        patientUpdateRequest.setLastName("Doe");
+        patientUpdateRequest.setEmail("patientChange@test.email");
+        patientUpdateRequest.setPassword("12345");
+        patientUpdateRequest.setPhoneNumber("0987654321");
+        patientUpdateRequest.setDateOfBirth(LocalDate.of(1980, 1, 1));
+        patientUpdateRequest.setGender(Gender.MALE);
 
-        patientMapper.updatePatientFromRequest(patientRequest, patient);
+        patientMapper.updatePatientFromRequest(patientUpdateRequest, patient);
 
-        assertEquals(patient.getFirstName(), patientRequest.getFirstName());
-        assertEquals(patient.getLastName(), patientRequest.getLastName());
-        assertEquals(patient.getEmail(), patientRequest.getEmail());
-        assertEquals(patient.getPassword(), patientRequest.getPassword());
-        assertEquals(patient.getPhoneNumber(), patientRequest.getPhoneNumber());
-        assertEquals(patient.getDateOfBirth(), patientRequest.getDateOfBirth());
-        assertEquals(patient.getGender(), patientRequest.getGender());
+        assertEquals(patient.getFirstName(), patientUpdateRequest.getFirstName());
+        assertEquals(patient.getLastName(), patientUpdateRequest.getLastName());
+        assertEquals(patient.getEmail(), patientUpdateRequest.getEmail());
+        assertEquals(patient.getPassword(), patientUpdateRequest.getPassword());
+        assertEquals(patient.getPhoneNumber(), patientUpdateRequest.getPhoneNumber());
+        assertEquals(patient.getDateOfBirth(), patientUpdateRequest.getDateOfBirth());
+        assertEquals(patient.getGender(), patientUpdateRequest.getGender());
     }
 }

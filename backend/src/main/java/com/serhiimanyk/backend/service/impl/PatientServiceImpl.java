@@ -1,6 +1,6 @@
 package com.serhiimanyk.backend.service.impl;
 
-import com.serhiimanyk.backend.dto.request.PatientRequest;
+import com.serhiimanyk.backend.dto.request.PatientUpdateRequest;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.enums.Role;
 import com.serhiimanyk.backend.exception.EmailAlreadyExistsException;
@@ -76,7 +76,7 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public Patient updatePatient(PatientRequest request, Long id) {
+    public Patient updatePatient(PatientUpdateRequest request, Long id) {
 
         Patient patientToUpdate = getPatientById(id);
 

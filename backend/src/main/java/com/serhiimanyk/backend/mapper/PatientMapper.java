@@ -1,6 +1,7 @@
 package com.serhiimanyk.backend.mapper;
 
-import com.serhiimanyk.backend.dto.request.PatientRequest;
+import com.serhiimanyk.backend.dto.request.PatientCreateRequest;
+import com.serhiimanyk.backend.dto.request.PatientUpdateRequest;
 import com.serhiimanyk.backend.dto.response.PatientResponse;
 import com.serhiimanyk.backend.entity.Patient;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,7 @@ public class PatientMapper {
                 .toList();
     }
 
-    public Patient toPatient(PatientRequest patientRequest) {
+    public Patient toPatient(PatientCreateRequest patientRequest) {
         Patient patient = new Patient();
         patient.setFirstName(patientRequest.getFirstName());
         patient.setLastName(patientRequest.getLastName());
@@ -42,12 +43,12 @@ public class PatientMapper {
         return patient;
     }
 
-    public void updatePatientFromRequest(PatientRequest patientRequest, Patient patient) {
-        patient.setFirstName(patientRequest.getFirstName());
-        patient.setLastName(patientRequest.getLastName());
-        patient.setGender(patientRequest.getGender());
-        patient.setEmail(patientRequest.getEmail());
-        patient.setPhoneNumber(patientRequest.getPhoneNumber());
-        patient.setDateOfBirth(patientRequest.getDateOfBirth());
+    public void updatePatientFromRequest(PatientUpdateRequest patientUpdateRequest, Patient patient) {
+        patient.setFirstName(patientUpdateRequest.getFirstName());
+        patient.setLastName(patientUpdateRequest.getLastName());
+        patient.setGender(patientUpdateRequest.getGender());
+        patient.setEmail(patientUpdateRequest.getEmail());
+        patient.setPhoneNumber(patientUpdateRequest.getPhoneNumber());
+        patient.setDateOfBirth(patientUpdateRequest.getDateOfBirth());
     }
 }

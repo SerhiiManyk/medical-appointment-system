@@ -24,9 +24,6 @@ public class PatientRequest {
     @Size(max = 100)
     private String email;
 
-    @Size(min = 6, max = 100, message = "{Size.patient.password}")
-    private String password;
-
     @Pattern(
             regexp = "^\\+?[0-9]{7,20}$",
             message = "{Pattern.user.phone}"

@@ -1,6 +1,6 @@
 package com.serhiimanyk.backend.service;
 
-import com.serhiimanyk.backend.dto.request.PatientRequest;
+import com.serhiimanyk.backend.dto.request.PatientUpdateRequest;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.exception.EmailAlreadyExistsException;
 import com.serhiimanyk.backend.exception.PatientNotFoundException;
@@ -157,7 +157,7 @@ public class PatientServiceImplTest {
     @Test
     public void updatePatient_shouldUpdatePatientSuccessfullyWhenEmailIsUnchanged() {
 
-        PatientRequest updatePatient = new PatientRequest();
+        PatientUpdateRequest updatePatient = new PatientUpdateRequest();
         updatePatient.setEmail(patient.getEmail());
 
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
@@ -178,7 +178,7 @@ public class PatientServiceImplTest {
     @Test
     public void updatePatient_shouldUpdatePatientSuccessfullyWhenEmailIsChanged() {
 
-        PatientRequest updatePatient = new PatientRequest();
+        PatientUpdateRequest updatePatient = new PatientUpdateRequest();
         updatePatient.setEmail("change@test.com");
 
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
@@ -198,7 +198,7 @@ public class PatientServiceImplTest {
     @Test
     public void updatePatient_shouldThrowExceptionWhenNewEmailAlreadyExists() {
 
-        PatientRequest updatePatient = new PatientRequest();
+        PatientUpdateRequest updatePatient = new PatientUpdateRequest();
         updatePatient.setEmail("change@test.com");
 
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
@@ -216,7 +216,7 @@ public class PatientServiceImplTest {
     @Test
     public void updatePatient_shouldThrowExceptionWhenPatientNotFound() {
 
-        PatientRequest updatePatient = new PatientRequest();
+        PatientUpdateRequest updatePatient = new PatientUpdateRequest();
         updatePatient.setEmail("change@test.com");
 
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.empty());
@@ -233,7 +233,7 @@ public class PatientServiceImplTest {
     @Test
     public void updatePatient_shouldEncodePasswordWhenPasswordIsProvided(){
 
-        PatientRequest updatePatient = new PatientRequest();
+        PatientUpdateRequest updatePatient = new PatientUpdateRequest();
         updatePatient.setPassword("newPassword");
 
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));

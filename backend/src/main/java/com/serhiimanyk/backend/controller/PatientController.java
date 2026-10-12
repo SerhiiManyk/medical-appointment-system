@@ -1,6 +1,7 @@
 package com.serhiimanyk.backend.controller;
 
-import com.serhiimanyk.backend.dto.request.PatientRequest;
+import com.serhiimanyk.backend.dto.request.PatientCreateRequest;
+import com.serhiimanyk.backend.dto.request.PatientUpdateRequest;
 import com.serhiimanyk.backend.dto.response.PatientResponse;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.mapper.PatientMapper;
@@ -23,7 +24,7 @@ public class PatientController {
     private final PatientMapper patientMapper;
 
     @PostMapping
-    public ResponseEntity<PatientResponse> createPatient(@Valid @RequestBody PatientRequest patientRequest) {
+    public ResponseEntity<PatientResponse> createPatient(@Valid @RequestBody PatientCreateRequest patientRequest) {
 
         Patient patient = patientMapper.toPatient(patientRequest);
 
@@ -57,9 +58,9 @@ public class PatientController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PatientResponse> updatePatient(@Valid @RequestBody PatientRequest patientRequest, @PathVariable Long id) {
+    public ResponseEntity<PatientResponse> updatePatient(@Valid @RequestBody PatientUpdateRequest patientUpdateRequest, @PathVariable Long id) {
 
-        Patient patient = patientService.updatePatient(patientRequest, id);
+        Patient patient = patientService.updatePatient(patientUpdateRequest, id);
 
         PatientResponse response = patientMapper.toPatientResponse(patient);
 
