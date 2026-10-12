@@ -25,15 +25,15 @@ public class TimeSlot {
     private Long id;
 
     @Column(name = "DATE", nullable = false)
-    @NotNull
+    @NotNull(message = "{NotNull.timeSlot.date}")
     private LocalDate date;
 
     @Column(name = "START_TIME", nullable = false)
-    @NotNull
+    @NotNull(message = "{NotNull.timeSlot.startTime}")
     private LocalTime startTime;
 
     @Column(name = "END_TIME", nullable = false)
-    @NotNull
+    @NotNull(message = "{NotNull.timeSlot.endTime}")
     private LocalTime endTime;
 
     @ManyToOne(fetch = FetchType.LAZY)

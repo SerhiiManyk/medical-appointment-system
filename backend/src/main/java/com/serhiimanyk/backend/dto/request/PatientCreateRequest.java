@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 public class PatientCreateRequest extends PatientRequest {
 
-    @NotBlank
+    @NotBlank(message = "{NotBlank.patient.password}")
     @Size(min = 6, max = 100, message = "{Size.patient.password}")
     private String password;
 
