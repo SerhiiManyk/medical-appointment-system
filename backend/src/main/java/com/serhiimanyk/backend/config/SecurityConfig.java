@@ -34,19 +34,46 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/patients/**").hasRole("PATIENT")
 
                 .requestMatchers(HttpMethod.POST, "/api/doctors/*/timeslots").hasRole("DOCTOR")
+
                 .requestMatchers(HttpMethod.GET,
                         "/api/doctors/*/timeslots/available",
                         "/api/doctors/*/timeslots/available/by-date"
                 ).hasAnyRole("DOCTOR", "PATIENT")
+
                 .requestMatchers(HttpMethod.GET, "/api/doctors/*/timeslots/**").hasRole("DOCTOR")
                 .requestMatchers(HttpMethod.PATCH, "/api/doctors/*/timeslots/*/block").hasRole("DOCTOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/doctors/*/timeslots/*").hasRole("DOCTOR")
 
                 .requestMatchers(HttpMethod.GET, "/api/doctors", "/api/doctors/**")
                 .hasAnyRole("DOCTOR", "PATIENT")
+
                 .requestMatchers(HttpMethod.POST, "/api/doctors").hasRole("DOCTOR")
                 .requestMatchers(HttpMethod.PUT, "/api/doctors/**").hasRole("DOCTOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/doctors/**").hasRole("DOCTOR")
+
+                .requestMatchers(HttpMethod.POST, "/api/appointments")
+                .hasRole("PATIENT")
+
+                .requestMatchers(HttpMethod.GET, "/api/appointments/patient/**")
+                .hasAnyRole("PATIENT", "DOCTOR")
+
+                .requestMatchers(HttpMethod.GET, "/api/appointments/doctor/**")
+                .hasRole("DOCTOR")
+
+                .requestMatchers(HttpMethod.GET, "/api/appointments/*")
+                .hasAnyRole("PATIENT", "DOCTOR")
+
+                .requestMatchers(HttpMethod.PATCH, "/api/appointments/*/cancel")
+                .hasRole("PATIENT")
+
+                .requestMatchers(HttpMethod.PATCH, "/api/appointments/*/complete")
+                .hasRole("DOCTOR")
+
+                .requestMatchers(HttpMethod.PATCH, "/api/appointments/*/reschedule")
+                .hasRole("PATIENT")
+
+                .requestMatchers(HttpMethod.DELETE, "/api/appointments/*")
+                .hasRole("DOCTOR")
 
                 .requestMatchers("/error").permitAll()
 
