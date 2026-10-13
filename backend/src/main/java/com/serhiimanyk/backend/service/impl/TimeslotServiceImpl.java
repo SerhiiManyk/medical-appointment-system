@@ -61,6 +61,12 @@ public class TimeslotServiceImpl implements TimeSlotService {
     @Override
     public List<TimeSlot> getAllTimeSlotsByDoctorId(Long doctorId) {
 
+        Doctor curentDoctor = getAuthenticatedDoctor();
+
+        if(!curentDoctor.getId().equals(doctorId)) {
+            throw new TimeSlotDoesNotBelongToDoctorException("Time slots doesn't belong to Doctor.");
+        }
+
         doctorRepository.findById(doctorId).orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + doctorId + " is not found."));
         return timeSlotRepository.findAllByDoctorId(doctorId);
     }
