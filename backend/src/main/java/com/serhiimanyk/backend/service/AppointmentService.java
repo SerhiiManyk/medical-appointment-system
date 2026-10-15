@@ -27,4 +27,6 @@ public interface AppointmentService {
 
     Appointment getAppointmentByIdForPatient(Long id);
 
+    Appointment getAppointmentByIdForDoctor(Long id);
+
 }

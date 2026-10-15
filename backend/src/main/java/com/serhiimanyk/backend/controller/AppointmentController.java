@@ -8,6 +8,7 @@ import com.serhiimanyk.backend.service.AppointmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -39,7 +40,20 @@ public class AppointmentController {
     @GetMapping("/{id}")
     public ResponseEntity<AppointmentResponse> getAppointmentById(@PathVariable Long id) {
 
-        Appointment appointment = appointmentService.getAppointmentById(id);
+        Appointment appointment;
+
+        boolean isPatient = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities()
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"));
+
+        if (isPatient) {
+            appointment = appointmentService.getAppointmentByIdForPatient(id);
+        } else {
+            appointment = appointmentService.getAppointmentByIdForDoctor(id);
+        }
 
         AppointmentResponse response = appointmentMapper.toResponse(appointment);
 

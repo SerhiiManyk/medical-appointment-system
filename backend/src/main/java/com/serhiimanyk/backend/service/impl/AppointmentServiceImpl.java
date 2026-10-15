@@ -177,4 +177,21 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
         return appointment;
     }
+
+    @Override
+    public Appointment getAppointmentByIdForDoctor(Long id) {
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Doctor curentDoctor = doctorRepository.findByEmail(username).orElseThrow(
+                () -> new DoctorNotFoundException(
+                        "Doctor with email " + username + " not found"));
+
+        Appointment appointment = getAppointmentById(id);
+
+        if(!appointment.getDoctor().getId().equals(curentDoctor.getId())) {
+            throw new AccessDeniedException("You don't have access to this appointment");
+        }
+        return appointment;
+    }
 }
