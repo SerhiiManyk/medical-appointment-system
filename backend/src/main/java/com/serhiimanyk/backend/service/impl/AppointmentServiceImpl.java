@@ -14,12 +14,14 @@ import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
 import com.serhiimanyk.backend.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -102,7 +104,31 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public Appointment cancelAppointment(Long id) {
 
-        Appointment appointment = getAppointmentById(id);
+        Appointment appointment;
+
+        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities();
+
+        boolean isPatient = authorities
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"));
+
+        boolean isDoctor = authorities
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
+
+        if (isPatient) {
+            appointment = getAppointmentByIdForPatient(id);
+        }
+        else if (isDoctor) {
+            appointment = getAppointmentByIdForDoctor(id);
+        }
+        else {
+            throw new AccessDeniedException("You don't have access to this appointment");
+        }
+
         TimeSlot timeSlot = appointment.getTimeSlot();
 
         if (appointment.getStatus() == AppointmentStatus.CANCELLED || appointment.getStatus() == AppointmentStatus.COMPLETED) {
