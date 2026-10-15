@@ -14,8 +14,11 @@ import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
 import com.serhiimanyk.backend.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 
@@ -156,5 +159,22 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setTimeSlot(newTimeSlot);
 
         return  appointmentRepository.save(appointment);
+    }
+
+    @Override
+    public Appointment getAppointmentByIdForPatient (Long id){
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Patient curentPatient = patientRepository.findByEmail(username).orElseThrow(
+                () -> new UsernameNotFoundException(
+                        "Patient with email " + username + " not found"));
+
+        Appointment appointment = getAppointmentById(id);
+
+        if(!appointment.getPatient().getId().equals(curentPatient.getId())) {
+            throw new AccessDeniedException("You don't have access to this appointment");
+        }
+        return appointment;
     }
 }

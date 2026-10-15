@@ -25,4 +25,6 @@ public interface AppointmentService {
 
     Appointment rescheduleAppointment(Long appointmentId, Long newTimeslotId);
 
+    Appointment getAppointmentByIdForPatient(Long id);
+
 }
