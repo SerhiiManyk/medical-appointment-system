@@ -19,4 +19,6 @@ public interface PatientService {
 
     void deletePatientById(Long id);
 
+    boolean isCurrentPatient(Long patientId);
+
 }

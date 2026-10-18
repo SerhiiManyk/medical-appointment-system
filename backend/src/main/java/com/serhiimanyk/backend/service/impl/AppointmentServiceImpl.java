@@ -13,6 +13,7 @@ import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
 import com.serhiimanyk.backend.service.AppointmentService;
+import com.serhiimanyk.backend.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,10 +38,16 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
 
+    private final PatientService patientService;
+
     @Override
     public Appointment createAppointment(AppointmentCreateRequest request) {
 
-        Patient patient = patientRepository.findById(request.getPatientId())
+        if(!patientService.isCurrentPatient(request.getPatientId())){
+            throw new AccessDeniedException("You can only create appointments for yourself.");
+        }
+
+         Patient patient = patientRepository.findById(request.getPatientId())
                 .orElseThrow(() -> new PatientNotFoundException("Patient with id " + request.getPatientId() + " is not found"));
 
         Doctor doctor = doctorRepository.findById(request.getDoctorId())
@@ -52,6 +59,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (timeSlot.getStatus() != TimeSlotStatus.FREE) {
             throw new InvalidTimeSlotException(
                     "TimeSlot is not available.");
+        }
+        if(appointmentRepository.existsByTimeSlot_IdAndStatus(timeSlot.getId(),AppointmentStatus.CREATED)){
+            throw new InvalidTimeSlotException(
+                    "TimeSlot is not available."
+            );
         }
         if (!request.getDoctorId().equals(timeSlot.getDoctor().getId())) {
             throw new TimeSlotDoesNotBelongToDoctorException(
@@ -145,18 +157,21 @@ public class AppointmentServiceImpl implements AppointmentService {
         TimeSlot newTimeSlot = timeSlotRepository.findById(newTimeslotId)
                 .orElseThrow(() -> new TimeSlotNotFoundException("Time slot with id " + newTimeslotId + " not found"));
 
-        if (newTimeSlot.getStatus() != TimeSlotStatus.FREE) {
-            throw new InvalidTimeSlotException(
-                    "TimeSlot is not available.");
+        if (appointment.getTimeSlot().getId().equals(newTimeSlot.getId())) {
+            throw new InvalidTimeSlotException("Timeslot with id " + newTimeSlot.getId() + " is already in progress.");
         }
-
         if (!appointment.getDoctor().getId().equals(newTimeSlot.getDoctor().getId())) {
             throw new TimeSlotDoesNotBelongToDoctorException(
                     "TimeSlot with id " + newTimeSlot.getId() + " does not belong to doctor with id " + appointment.getDoctor().getId());
         }
-
-        if (appointment.getTimeSlot().getId().equals(newTimeSlot.getId())) {
-            throw new InvalidTimeSlotException("Timeslot with id " + newTimeSlot.getId() + " is already in progress.");
+        if (newTimeSlot.getStatus() != TimeSlotStatus.FREE) {
+            throw new InvalidTimeSlotException(
+                    "TimeSlot is not available.");
+        }
+        if(appointmentRepository.existsByTimeSlot_IdAndStatus(newTimeslotId,AppointmentStatus.CREATED)){
+            throw new InvalidTimeSlotException(
+                    "TimeSlot is not available."
+            );
         }
 
         appointment.getTimeSlot().setStatus(TimeSlotStatus.FREE);

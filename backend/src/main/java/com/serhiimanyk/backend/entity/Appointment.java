@@ -31,7 +31,7 @@ public class Appointment {
     @NotNull(message = "{NotNull.appointment.patient}")
     private Patient patient;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TIME_SLOT_ID", nullable = false)
     @NotNull(message = "{NotNull.appointment.timeSlot}")
     private TimeSlot timeSlot;
