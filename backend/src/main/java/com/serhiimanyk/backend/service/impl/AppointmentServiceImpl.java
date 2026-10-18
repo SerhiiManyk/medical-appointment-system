@@ -43,11 +43,11 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public Appointment createAppointment(AppointmentCreateRequest request) {
 
-        if(!patientService.isCurrentPatient(request.getPatientId())){
+        if (!patientService.isCurrentPatient(request.getPatientId())) {
             throw new AccessDeniedException("You can only create appointments for yourself.");
         }
 
-         Patient patient = patientRepository.findById(request.getPatientId())
+        Patient patient = patientRepository.findById(request.getPatientId())
                 .orElseThrow(() -> new PatientNotFoundException("Patient with id " + request.getPatientId() + " is not found"));
 
         Doctor doctor = doctorRepository.findById(request.getDoctorId())
@@ -60,7 +60,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new InvalidTimeSlotException(
                     "TimeSlot is not available.");
         }
-        if(appointmentRepository.existsByTimeSlot_IdAndStatus(timeSlot.getId(),AppointmentStatus.CREATED)){
+        if (appointmentRepository.existsByTimeSlot_IdAndStatus(timeSlot.getId(), AppointmentStatus.CREATED)) {
             throw new InvalidTimeSlotException(
                     "TimeSlot is not available."
             );
@@ -90,7 +90,29 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         patientRepository.findById(id).orElseThrow(() -> new PatientNotFoundException("Patient with id " + id + " is not found"));
 
-        return appointmentRepository.findByPatientId(id);
+        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities();
+
+        boolean isPatient = authorities
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"));
+
+        boolean isDoctor = authorities
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
+
+        if (isPatient) {
+            if (!patientService.isCurrentPatient(id)) {
+                throw new AccessDeniedException("You can only see your appointments.");
+            }
+            return appointmentRepository.findByPatientId(id);
+        } else if (isDoctor) {
+            return appointmentRepository.findByPatientId(id);
+        } else {
+            throw new AccessDeniedException("You don't have access to these appointments");
+        }
     }
 
     @Override
@@ -168,7 +190,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new InvalidTimeSlotException(
                     "TimeSlot is not available.");
         }
-        if(appointmentRepository.existsByTimeSlot_IdAndStatus(newTimeslotId,AppointmentStatus.CREATED)){
+        if (appointmentRepository.existsByTimeSlot_IdAndStatus(newTimeslotId, AppointmentStatus.CREATED)) {
             throw new InvalidTimeSlotException(
                     "TimeSlot is not available."
             );
@@ -215,7 +237,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         return appointment;
     }
 
-    private Appointment getAppointmentForCurrentUser(Long appointmentId){
+    private Appointment getAppointmentForCurrentUser(Long appointmentId) {
 
         Appointment appointment;
 
