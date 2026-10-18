@@ -70,7 +70,7 @@ public class SecurityConfig {
                 .hasRole("DOCTOR")
 
                 .requestMatchers(HttpMethod.PATCH, "/api/appointments/*/reschedule")
-                .hasRole("PATIENT")
+                .hasAnyRole("PATIENT", "DOCTOR")
 
                 .requestMatchers(HttpMethod.DELETE, "/api/appointments/*")
                 .hasRole("DOCTOR")

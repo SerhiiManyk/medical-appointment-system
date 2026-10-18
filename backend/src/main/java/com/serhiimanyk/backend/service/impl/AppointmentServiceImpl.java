@@ -98,36 +98,15 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public void deleteAppointmentById(Long id) {
 
-        appointmentRepository.deleteById(id);
+        Appointment appointment = getAppointmentByIdForDoctor(id);
+
+        appointmentRepository.deleteById(appointment.getId());
     }
 
     @Override
     public Appointment cancelAppointment(Long id) {
 
-        Appointment appointment;
-
-        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getAuthorities();
-
-        boolean isPatient = authorities
-                .stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"));
-
-        boolean isDoctor = authorities
-                .stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
-
-        if (isPatient) {
-            appointment = getAppointmentByIdForPatient(id);
-        }
-        else if (isDoctor) {
-            appointment = getAppointmentByIdForDoctor(id);
-        }
-        else {
-            throw new AccessDeniedException("You don't have access to this appointment");
-        }
+        Appointment appointment = getAppointmentForCurrentUser(id);
 
         TimeSlot timeSlot = appointment.getTimeSlot();
 
@@ -143,7 +122,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public Appointment completeAppointment(Long id) {
-        Appointment appointment = getAppointmentById(id);
+        Appointment appointment = getAppointmentByIdForDoctor(id);
 
         if (appointment.getStatus() == AppointmentStatus.CANCELLED || appointment.getStatus() == AppointmentStatus.COMPLETED) {
             throw new AppointmentAlreadyFinishedException("Appointment is already cancelled or completed.");
@@ -157,7 +136,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public Appointment rescheduleAppointment(Long appointmentId, Long newTimeslotId) {
 
-        Appointment appointment = getAppointmentById(appointmentId);
+        Appointment appointment = getAppointmentForCurrentUser(appointmentId);
 
         if (appointment.getStatus() == AppointmentStatus.CANCELLED || appointment.getStatus() == AppointmentStatus.COMPLETED) {
             throw new AppointmentAlreadyFinishedException("Appointment is already cancelled or completed.");
@@ -184,11 +163,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         newTimeSlot.setStatus(TimeSlotStatus.BOOKED);
         appointment.setTimeSlot(newTimeSlot);
 
-        return  appointmentRepository.save(appointment);
+        return appointmentRepository.save(appointment);
     }
 
     @Override
-    public Appointment getAppointmentByIdForPatient (Long id){
+    public Appointment getAppointmentByIdForPatient(Long id) {
 
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -198,7 +177,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment appointment = getAppointmentById(id);
 
-        if(!appointment.getPatient().getId().equals(curentPatient.getId())) {
+        if (!appointment.getPatient().getId().equals(curentPatient.getId())) {
             throw new AccessDeniedException("You don't have access to this appointment");
         }
         return appointment;
@@ -215,7 +194,34 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment appointment = getAppointmentById(id);
 
-        if(!appointment.getDoctor().getId().equals(curentDoctor.getId())) {
+        if (!appointment.getDoctor().getId().equals(curentDoctor.getId())) {
+            throw new AccessDeniedException("You don't have access to this appointment");
+        }
+        return appointment;
+    }
+
+    private Appointment getAppointmentForCurrentUser(Long appointmentId){
+
+        Appointment appointment;
+
+        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities();
+
+        boolean isPatient = authorities
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"));
+
+        boolean isDoctor = authorities
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
+
+        if (isPatient) {
+            appointment = getAppointmentByIdForPatient(appointmentId);
+        } else if (isDoctor) {
+            appointment = getAppointmentByIdForDoctor(appointmentId);
+        } else {
             throw new AccessDeniedException("You don't have access to this appointment");
         }
         return appointment;
