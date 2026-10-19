@@ -9,8 +9,6 @@ public interface AppointmentService {
 
     Appointment createAppointment(AppointmentCreateRequest request);
 
-    Appointment getAppointmentById(Long id);
-
     List<Appointment> getAppointmentsByPatientId(Long id);
 
     List<Appointment> getAppointmentsByDoctorId(Long id);

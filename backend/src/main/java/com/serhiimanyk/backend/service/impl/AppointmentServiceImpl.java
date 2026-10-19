@@ -84,8 +84,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         return appointmentRepository.save(appointment);
     }
 
-    @Override
-    public Appointment getAppointmentById(Long id) {
+
+    private Appointment getAppointmentById(Long id) {
 
         return appointmentRepository.findById(id)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));

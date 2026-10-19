@@ -226,36 +226,6 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void getAppointmentById_shouldReturnAppointmentSuccessfully() {
-
-        Appointment testAppointment = new Appointment();
-        testAppointment.setPatient(patient);
-        testAppointment.setDoctor(doctor);
-        testAppointment.setTimeSlot(timeSlot);
-        testAppointment.setStatus(AppointmentStatus.CREATED);
-
-        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(testAppointment));
-
-        Appointment appointment = appointmentService.getAppointmentById(1L);
-
-        assertEquals(testAppointment, appointment);
-
-        verify(appointmentRepository, times(1)).findById(1L);
-    }
-
-    @Test
-    public void getAppointmentById_shouldThrowException_whenAppointmentNotFound() {
-
-        when(appointmentRepository.findById(10000L)).thenReturn(Optional.empty());
-
-        AppointmentNotFoundException exception = assertThrows(AppointmentNotFoundException.class,
-                () -> appointmentService.getAppointmentById(10000L));
-
-        assertEquals("Appointment not found", exception.getMessage());
-        verify(appointmentRepository, times(1)).findById(10000L);
-    }
-
-    @Test
     public void getAppointmentsByPatientId_shouldReturnAppointmentsSuccessfully() {
 
         when(patientRepository.findById(1L)).thenReturn(Optional.of(patient));
