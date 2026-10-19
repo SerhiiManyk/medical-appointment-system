@@ -2,6 +2,7 @@ package com.serhiimanyk.backend.service.impl;
 
 import com.serhiimanyk.backend.dto.request.DoctorRequest;
 import com.serhiimanyk.backend.entity.Doctor;
+import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.enums.Role;
 import com.serhiimanyk.backend.enums.Specialization;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;
@@ -10,6 +11,8 @@ import com.serhiimanyk.backend.mapper.DoctorMapper;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.service.DoctorService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,5 +95,21 @@ public class DoctorServiceImpl implements DoctorService {
         Doctor doctor = getDoctorById(id);
 
         doctorRepository.delete(doctor);
+    }
+
+    public Doctor getDoctorFromAuthentication() {
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        return doctorRepository.findByEmail(username).orElseThrow(
+                () -> new UsernameNotFoundException(
+                        "Doctor with email " + username + " not found"));
+    }
+
+    public boolean isCurrentDoctor(Long doctorId) {
+
+        Doctor authenticatedDoctor = getDoctorFromAuthentication();
+
+        return authenticatedDoctor.getId().equals(doctorId);
     }
 }

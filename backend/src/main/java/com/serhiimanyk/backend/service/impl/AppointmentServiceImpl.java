@@ -13,6 +13,7 @@ import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
 import com.serhiimanyk.backend.service.AppointmentService;
+import com.serhiimanyk.backend.service.DoctorService;
 import com.serhiimanyk.backend.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -39,6 +40,8 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentRepository appointmentRepository;
 
     private final PatientService patientService;
+
+    private final DoctorService doctorService;
 
     @Override
     public Appointment createAppointment(AppointmentCreateRequest request) {
@@ -118,9 +121,33 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public List<Appointment> getAppointmentsByDoctorId(Long id) {
 
+        List<Appointment> appointments;
+
         doctorRepository.findById(id).orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + id + " is not found"));
 
-        return appointmentRepository.findByDoctorId(id);
+        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities();
+
+        boolean isPatient = authorities
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"));
+
+        boolean isDoctor = authorities
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
+        if(isPatient){
+            throw new AccessDeniedException("You can only see your appointments.");
+        }else if(isDoctor){
+            if(!doctorService.isCurrentDoctor(id)){
+                throw new AccessDeniedException("You can only see your appointments.");
+            }
+            appointments =  appointmentRepository.findByDoctorId(id);
+        }else{
+            throw new AccessDeniedException("You don't have access to these appointments");
+        }
+        return appointments;
     }
 
     @Override

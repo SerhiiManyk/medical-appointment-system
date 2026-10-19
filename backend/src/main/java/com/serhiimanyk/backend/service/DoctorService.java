@@ -22,4 +22,6 @@ public interface DoctorService {
 
     void deleteDoctorById(Long id);
 
+    public boolean isCurrentDoctor(Long doctorId);
+
 }
