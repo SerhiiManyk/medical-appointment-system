@@ -6,6 +6,7 @@ import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.entity.TimeSlot;
 import com.serhiimanyk.backend.enums.AppointmentStatus;
+import com.serhiimanyk.backend.enums.Role;
 import com.serhiimanyk.backend.enums.TimeSlotStatus;
 import com.serhiimanyk.backend.exception.*;
 import com.serhiimanyk.backend.repository.AppointmentRepository;
@@ -16,6 +17,8 @@ import com.serhiimanyk.backend.service.AppointmentService;
 import com.serhiimanyk.backend.service.DoctorService;
 import com.serhiimanyk.backend.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -137,14 +140,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         boolean isDoctor = authorities
                 .stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
-        if(isPatient){
+        if (isPatient) {
             throw new AccessDeniedException("You can only see your appointments.");
-        }else if(isDoctor){
-            if(!doctorService.isCurrentDoctor(id)){
+        } else if (isDoctor) {
+            if (!doctorService.isCurrentDoctor(id)) {
                 throw new AccessDeniedException("You can only see your appointments.");
             }
-            appointments =  appointmentRepository.findByDoctorId(id);
-        }else{
+            appointments = appointmentRepository.findByDoctorId(id);
+        } else {
             throw new AccessDeniedException("You don't have access to these appointments");
         }
         return appointments;
@@ -289,5 +292,36 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new AccessDeniedException("You don't have access to this appointment");
         }
         return appointment;
+    }
+
+    private Role getCurrentUserRole() {
+
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+
+        boolean isPatient = authorities
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"));
+
+        boolean isDoctor = authorities
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
+
+        if (isPatient) {
+            return Role.PATIENT;
+        } else if (isDoctor) {
+            return Role.DOCTOR;
+        } else {
+            throw new AccessDeniedException("You don't have access to this appointment");
+        }
     }
 }
