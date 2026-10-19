@@ -20,8 +20,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -30,6 +35,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,6 +65,14 @@ public class AppointmentControllerTest {
                 .standaloneSetup(appointmentController)
                 .setControllerAdvice(GlobalExceptionHandler.class)
                 .build();
+
+        var authentication = new UsernamePasswordAuthenticationToken(
+                "doctor@test.com",
+                "password",
+                List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         doctor = new Doctor();
         doctor.setId(1L);
@@ -323,7 +337,7 @@ public class AppointmentControllerTest {
     @Test
     public void getAppointmentById_shouldReturnAppointmentSuccessfully() throws Exception {
 
-        when(appointmentService.getAppointmentById(1L)).thenReturn(appointment);
+        when(appointmentService.getAppointmentByIdForDoctor(1L)).thenReturn(appointment);
         when(appointmentMapper.toResponse(appointment)).thenReturn(appointmentResponse);
 
         mockMvc.perform(
@@ -345,13 +359,13 @@ public class AppointmentControllerTest {
                 .andExpect(jsonPath("$.status").value("CREATED"))
                 .andExpect(jsonPath("$.comment").value("Test comment"));
 
-        verify(appointmentService, times(1)).getAppointmentById(1L);
+        verify(appointmentService, times(1)).getAppointmentByIdForDoctor(1L);
         verify(appointmentMapper, times(1)).toResponse(appointment);
     }
 
     @Test
     public void getAppointmentById_shouldReturn404WhenAppointmentNotFound() throws Exception {
-        when(appointmentService.getAppointmentById(1L)).thenThrow(new AppointmentNotFoundException("Appointment not found"));
+        when(appointmentService.getAppointmentByIdForPatient(1L)).thenThrow(new AppointmentNotFoundException("Appointment not found"));
 
         mockMvc.perform(
                         get("/api/appointments/1")
@@ -359,7 +373,7 @@ public class AppointmentControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Appointment not found"));
 
-        verify(appointmentService, times(1)).getAppointmentById(1L);
+        verify(appointmentService, times(1)).getAppointmentByIdForPatient(1L);
         verify(appointmentMapper, never()).toResponse(any());
     }
 
@@ -735,7 +749,15 @@ public class AppointmentControllerTest {
     }
 
     @Test
-    public void rescheduleAppointment_shouldReturn400WhenTimeSlotDoesNotBelongToDoctor() throws Exception {
+    public void rescheduleAppointment_shouldReturn403WhenTimeSlotDoesNotBelongToDoctor() throws Exception {
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.com",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
 
         Doctor doctor2 = new Doctor();
 
@@ -749,7 +771,7 @@ public class AppointmentControllerTest {
         mockMvc.perform(
                         patch("/api/appointments/1/reschedule?timeSlotId=2")
                 )
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value(
                         "TimeSlot with id " + timeSlot2.getId() + " does not belong to doctor with id " + appointment.getDoctor().getId()));
 
