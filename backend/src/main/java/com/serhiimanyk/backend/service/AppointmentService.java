@@ -15,8 +15,6 @@ public interface AppointmentService {
 
     List<Appointment> getAppointmentsByDoctorId(Long id);
 
-    List<Appointment> getAllAppointments();
-
     void deleteAppointmentById(Long id);
 
     Appointment cancelAppointment(Long id);

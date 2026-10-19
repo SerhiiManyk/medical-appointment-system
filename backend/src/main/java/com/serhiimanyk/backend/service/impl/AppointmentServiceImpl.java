@@ -96,25 +96,14 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         patientRepository.findById(id).orElseThrow(() -> new PatientNotFoundException("Patient with id " + id + " is not found"));
 
-        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getAuthorities();
+        Role role = getCurrentUserRole();
 
-        boolean isPatient = authorities
-                .stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"));
-
-        boolean isDoctor = authorities
-                .stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
-
-        if (isPatient) {
+        if (role == Role.PATIENT) {
             if (!patientService.isCurrentPatient(id)) {
                 throw new AccessDeniedException("You can only see your appointments.");
             }
             return appointmentRepository.findByPatientId(id);
-        } else if (isDoctor) {
+        } else if (role == Role.DOCTOR) {
             return appointmentRepository.findByPatientId(id);
         } else {
             throw new AccessDeniedException("You don't have access to these appointments");
@@ -124,39 +113,20 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public List<Appointment> getAppointmentsByDoctorId(Long id) {
 
-        List<Appointment> appointments;
-
         doctorRepository.findById(id).orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + id + " is not found"));
 
-        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getAuthorities();
+        Role role = getCurrentUserRole();
 
-        boolean isPatient = authorities
-                .stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"));
-
-        boolean isDoctor = authorities
-                .stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
-        if (isPatient) {
+        if (role == Role.PATIENT) {
             throw new AccessDeniedException("You can only see your appointments.");
-        } else if (isDoctor) {
+        } else if (role == Role.DOCTOR) {
             if (!doctorService.isCurrentDoctor(id)) {
                 throw new AccessDeniedException("You can only see your appointments.");
             }
-            appointments = appointmentRepository.findByDoctorId(id);
+            return appointmentRepository.findByDoctorId(id);
         } else {
             throw new AccessDeniedException("You don't have access to these appointments");
         }
-        return appointments;
-    }
-
-    @Override
-    public List<Appointment> getAllAppointments() {
-
-        return appointmentRepository.findAll();
     }
 
     @Override
@@ -269,29 +239,16 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     private Appointment getAppointmentForCurrentUser(Long appointmentId) {
 
-        Appointment appointment;
+        Role role = getCurrentUserRole();
 
-        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getAuthorities();
-
-        boolean isPatient = authorities
-                .stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"));
-
-        boolean isDoctor = authorities
-                .stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_DOCTOR"));
-
-        if (isPatient) {
-            appointment = getAppointmentByIdForPatient(appointmentId);
-        } else if (isDoctor) {
-            appointment = getAppointmentByIdForDoctor(appointmentId);
+        if (role == Role.PATIENT) {
+            return getAppointmentByIdForPatient(appointmentId);
+        } else if (role == Role.DOCTOR) {
+            return getAppointmentByIdForDoctor(appointmentId);
         } else {
             throw new AccessDeniedException("You don't have access to this appointment");
         }
-        return appointment;
+
     }
 
     private Role getCurrentUserRole() {
