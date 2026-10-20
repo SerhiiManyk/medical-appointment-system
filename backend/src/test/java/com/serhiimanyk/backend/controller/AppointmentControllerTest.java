@@ -24,9 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -35,7 +33,6 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -287,7 +284,7 @@ public class AppointmentControllerTest {
     }
 
     @Test
-    public void createAppointment_shouldReturn400WhenTimeSlotDoesNotBelongToDoctor() throws Exception {
+    public void createAppointment_shouldReturn403WhenTimeSlotDoesNotBelongToDoctor() throws Exception {
 
         when(appointmentService.createAppointment(any(AppointmentCreateRequest.class))).thenThrow(
                 new TimeSlotDoesNotBelongToDoctorException(
@@ -303,7 +300,7 @@ public class AppointmentControllerTest {
                                         "timeSlotId":"2"
                                          }
                                         """))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value(
                         "TimeSlot with id " + appointmentCreateRequest.getTimeSlotId() + " does not belong to doctor with id " + appointmentCreateRequest.getDoctorId()));
 
@@ -365,7 +362,7 @@ public class AppointmentControllerTest {
 
     @Test
     public void getAppointmentById_shouldReturn404WhenAppointmentNotFound() throws Exception {
-        when(appointmentService.getAppointmentByIdForPatient(1L)).thenThrow(new AppointmentNotFoundException("Appointment not found"));
+        when(appointmentService.getAppointmentByIdForDoctor(1L)).thenThrow(new AppointmentNotFoundException("Appointment not found"));
 
         mockMvc.perform(
                         get("/api/appointments/1")
@@ -373,7 +370,7 @@ public class AppointmentControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Appointment not found"));
 
-        verify(appointmentService, times(1)).getAppointmentByIdForPatient(1L);
+        verify(appointmentService, times(1)).getAppointmentByIdForDoctor(1L);
         verify(appointmentMapper, never()).toResponse(any());
     }
 
