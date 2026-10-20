@@ -66,14 +66,14 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new InvalidTimeSlotException(
                     "TimeSlot is not available.");
         }
+        if (!request.getDoctorId().equals(timeSlot.getDoctor().getId())) {
+            throw new TimeSlotDoesNotBelongToDoctorException(
+                    "TimeSlot with id " + request.getTimeSlotId() + " does not belong to doctor with id " + request.getDoctorId());
+        }
         if (appointmentRepository.existsByTimeSlot_IdAndStatus(timeSlot.getId(), AppointmentStatus.CREATED)) {
             throw new InvalidTimeSlotException(
                     "TimeSlot is not available."
             );
-        }
-        if (!request.getDoctorId().equals(timeSlot.getDoctor().getId())) {
-            throw new TimeSlotDoesNotBelongToDoctorException(
-                    "TimeSlot with id " + request.getTimeSlotId() + " does not belong to doctor with id " + request.getDoctorId());
         }
         Appointment appointment = new Appointment();
         appointment.setPatient(patient);
@@ -83,7 +83,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         timeSlot.setStatus(TimeSlotStatus.BOOKED);
         return appointmentRepository.save(appointment);
     }
-
 
     private Appointment getAppointmentById(Long id) {
 

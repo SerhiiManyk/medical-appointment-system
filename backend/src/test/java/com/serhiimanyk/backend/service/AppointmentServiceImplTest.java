@@ -16,6 +16,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,10 +48,15 @@ class AppointmentServiceImplTest {
     @Mock
     private AppointmentRepository appointmentRepository;
 
+    @Mock
+    private PatientService patientService;
+
 
     @InjectMocks
     private AppointmentServiceImpl appointmentService;
 
+    @Mock
+    private DoctorService doctorService;
 
     @BeforeEach
     public void createTestPatient() {
@@ -72,6 +80,17 @@ class AppointmentServiceImplTest {
         timeSlot.setDoctor(doctor);
     }
 
+    @BeforeEach
+    public void authenticationDoctor(){
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.mail",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
+    }
+
     @Test
     public void createAppointment_shouldCreateAppointmentSuccessfully() {
 
@@ -80,6 +99,7 @@ class AppointmentServiceImplTest {
         request.setDoctorId(doctor.getId());
         request.setTimeSlotId(timeSlot.getId());
 
+        when(patientService.isCurrentPatient(patient.getId())).thenReturn(true);
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
         when(timeSlotRepository.findById(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
@@ -114,6 +134,7 @@ class AppointmentServiceImplTest {
         request.setDoctorId(doctor.getId());
         request.setTimeSlotId(timeSlot.getId());
 
+        when(patientService.isCurrentPatient(10000L)).thenReturn(true);
         when(patientRepository.findById(10000L)).thenReturn(Optional.empty());
 
         PatientNotFoundException exception = assertThrows(
@@ -136,6 +157,7 @@ class AppointmentServiceImplTest {
 
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
         when(doctorRepository.findById(10000L)).thenReturn(Optional.empty());
+        when(patientService.isCurrentPatient(patient.getId())).thenReturn(true);
 
         DoctorNotFoundException exception = assertThrows(
                 DoctorNotFoundException.class,
@@ -159,6 +181,7 @@ class AppointmentServiceImplTest {
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
         when(timeSlotRepository.findById(10000L)).thenReturn(Optional.empty());
+        when(patientService.isCurrentPatient(patient.getId())).thenReturn(true);
 
         TimeSlotNotFoundException exception = assertThrows(
                 TimeSlotNotFoundException.class,
@@ -183,6 +206,7 @@ class AppointmentServiceImplTest {
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
         when(timeSlotRepository.findById(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
+        when(patientService.isCurrentPatient(patient.getId())).thenReturn(true);
         timeSlot.setStatus(TimeSlotStatus.BOOKED);
 
         InvalidTimeSlotException exception = assertThrows(
@@ -211,6 +235,7 @@ class AppointmentServiceImplTest {
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
         when(timeSlotRepository.findById(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
+        when(patientService.isCurrentPatient(patient.getId())).thenReturn(true);
         timeSlot.setDoctor(testDoctor);
 
         TimeSlotDoesNotBelongToDoctorException exception = assertThrows(
@@ -283,6 +308,8 @@ class AppointmentServiceImplTest {
 
         when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
 
+        when(doctorService.isCurrentDoctor(1L)).thenReturn(true);
+
         Appointment appointment1 = new Appointment();
         appointment1.setDoctor(doctor);
 
@@ -304,6 +331,8 @@ class AppointmentServiceImplTest {
     public void getAppointmentsByDoctorId_shouldReturnEmptyList_whenDoctorHasNoAppointments() {
 
         when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+
+        when(doctorService.isCurrentDoctor(1L)).thenReturn(true);
 
         List<Appointment> appointmentList = List.of();
 
@@ -332,6 +361,14 @@ class AppointmentServiceImplTest {
     @Test
     public void deleteAppointmentById_shouldDeleteAppointmentSuccessfully() {
 
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDoctor(doctor);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
         appointmentService.deleteAppointmentById(1L);
 
         verify(appointmentRepository, times(1)).deleteById(1L);
@@ -343,8 +380,12 @@ class AppointmentServiceImplTest {
         Appointment appointment = new Appointment();
         TimeSlot timeSlot = new TimeSlot();
         appointment.setTimeSlot(timeSlot);
+        appointment.setId(1L);
+        appointment.setDoctor(doctor);
         appointment.setStatus(AppointmentStatus.CREATED);
         timeSlot.setStatus(TimeSlotStatus.BOOKED);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
@@ -362,6 +403,8 @@ class AppointmentServiceImplTest {
     @Test
     public void cancelAppointment_shouldThrowException_whenAppointmentNotFound() {
 
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
+
         when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
 
         AppointmentNotFoundException exception = assertThrows(AppointmentNotFoundException.class,
@@ -376,7 +419,11 @@ class AppointmentServiceImplTest {
     public void cancelAppointment_shouldThrowException_whenAppointmentAlreadyCancelled() {
 
         Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDoctor(doctor);
         appointment.setStatus(AppointmentStatus.CANCELLED);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
@@ -392,7 +439,11 @@ class AppointmentServiceImplTest {
     public void cancelAppointment_shouldThrowException_whenAppointmentAlreadyCompleted() {
 
         Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDoctor(doctor);
         appointment.setStatus(AppointmentStatus.COMPLETED);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
@@ -409,7 +460,11 @@ class AppointmentServiceImplTest {
     public void completeAppointment_shouldCompleteAppointmentSuccessfully() {
 
         Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDoctor(doctor);
         appointment.setStatus(AppointmentStatus.CREATED);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
@@ -426,6 +481,8 @@ class AppointmentServiceImplTest {
     @Test
     public void completeAppointment_shouldThrowException_whenAppointmentNotFound() {
 
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
+
         when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
 
         AppointmentNotFoundException exception = assertThrows(AppointmentNotFoundException.class,
@@ -440,7 +497,11 @@ class AppointmentServiceImplTest {
     public void completeAppointment_shouldThrowException_whenAppointmentAlreadyCompleted() {
 
         Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDoctor(doctor);
         appointment.setStatus(AppointmentStatus.COMPLETED);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
@@ -456,7 +517,11 @@ class AppointmentServiceImplTest {
     public void completeAppointment_shouldThrowException_whenAppointmentAlreadyCancelled() {
 
         Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDoctor(doctor);
         appointment.setStatus(AppointmentStatus.CANCELLED);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
@@ -489,6 +554,8 @@ class AppointmentServiceImplTest {
 
         appointment.setTimeSlot(oldTimeSlot);
 
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
+
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
         when(timeSlotRepository.findById(2L)).thenReturn(Optional.of(newTimeSlot));
 
@@ -508,6 +575,8 @@ class AppointmentServiceImplTest {
     @Test
     public void rescheduleAppointment_shouldThrowException_whenAppointmentNotFound() {
 
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
+
         when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
 
         AppointmentNotFoundException exception = assertThrows(AppointmentNotFoundException.class,
@@ -522,9 +591,21 @@ class AppointmentServiceImplTest {
     @Test
     public void rescheduleAppointment_shouldThrowException_whenAppointmentAlreadyCancelled() {
 
+        Doctor doctor1 = new Doctor();
+        doctor1.setId(1L);
+
+        TimeSlot oldTimeSlot = new TimeSlot();
+        oldTimeSlot.setId(1L);
+        oldTimeSlot.setStatus(TimeSlotStatus.BOOKED);
+        oldTimeSlot.setDoctor(doctor1);
+
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setStatus(AppointmentStatus.CANCELLED);
+        appointment.setTimeSlot(oldTimeSlot);
+        appointment.setDoctor(doctor1);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
@@ -540,9 +621,21 @@ class AppointmentServiceImplTest {
     @Test
     public void rescheduleAppointment_shouldThrowException_whenAppointmentAlreadyCompleted() {
 
+        Doctor doctor1 = new Doctor();
+        doctor1.setId(1L);
+
+        TimeSlot oldTimeSlot = new TimeSlot();
+        oldTimeSlot.setId(1L);
+        oldTimeSlot.setStatus(TimeSlotStatus.BOOKED);
+        oldTimeSlot.setDoctor(doctor1);
+
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setStatus(AppointmentStatus.COMPLETED);
+        appointment.setTimeSlot(oldTimeSlot);
+        appointment.setDoctor(doctor1);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
@@ -558,9 +651,21 @@ class AppointmentServiceImplTest {
     @Test
     public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotNotFound() {
 
+        Doctor doctor1 = new Doctor();
+        doctor1.setId(1L);
+
+        TimeSlot oldTimeSlot = new TimeSlot();
+        oldTimeSlot.setId(1L);
+        oldTimeSlot.setStatus(TimeSlotStatus.BOOKED);
+        oldTimeSlot.setDoctor(doctor1);
+
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setStatus(AppointmentStatus.CREATED);
+        appointment.setTimeSlot(oldTimeSlot);
+        appointment.setDoctor(doctor1);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
@@ -578,13 +683,27 @@ class AppointmentServiceImplTest {
     @Test
     public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotIsNotFree() {
 
+        Doctor doctor1 = new Doctor();
+        doctor1.setId(1L);
+
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setStatus(AppointmentStatus.CREATED);
+        appointment.setDoctor(doctor1);
 
         TimeSlot newTimeSlot = new TimeSlot();
         newTimeSlot.setId(2L);
         newTimeSlot.setStatus(TimeSlotStatus.BOOKED);
+        newTimeSlot.setDoctor(doctor1);
+
+        TimeSlot oldTimeSlot = new TimeSlot();
+        oldTimeSlot.setId(1L);
+        oldTimeSlot.setStatus(TimeSlotStatus.BOOKED);
+        oldTimeSlot.setDoctor(doctor1);
+
+        appointment.setTimeSlot(oldTimeSlot);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
@@ -617,6 +736,15 @@ class AppointmentServiceImplTest {
         newTimeSlot.setId(2L);
         newTimeSlot.setStatus(TimeSlotStatus.FREE);
         newTimeSlot.setDoctor(doctor2);
+
+        TimeSlot oldTimeSlot = new TimeSlot();
+        oldTimeSlot.setId(1L);
+        oldTimeSlot.setStatus(TimeSlotStatus.BOOKED);
+        oldTimeSlot.setDoctor(doctor1);
+
+        appointment.setTimeSlot(oldTimeSlot);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
@@ -651,6 +779,8 @@ class AppointmentServiceImplTest {
         newTimeSlot.setDoctor(doctor);
 
         appointment.setTimeSlot(oldTimeSlot);
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
