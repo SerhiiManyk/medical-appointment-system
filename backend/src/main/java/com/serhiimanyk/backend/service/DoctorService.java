@@ -24,4 +24,6 @@ public interface DoctorService {
 
     public boolean isCurrentDoctor(Long doctorId);
 
+    public Doctor getDoctorFromAuthentication();
+
 }

@@ -21,4 +21,6 @@ public interface PatientService {
 
     boolean isCurrentPatient(Long patientId);
 
+    public Patient getPatientFromAuthentication();
+
 }

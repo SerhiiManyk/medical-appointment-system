@@ -205,11 +205,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public Appointment getAppointmentByIdForPatient(Long id) {
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        Patient curentPatient = patientRepository.findByEmail(username).orElseThrow(
-                () -> new UsernameNotFoundException(
-                        "Patient with email " + username + " not found"));
+        Patient curentPatient = patientService.getPatientFromAuthentication();
 
         Appointment appointment = getAppointmentById(id);
 
@@ -222,11 +218,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public Appointment getAppointmentByIdForDoctor(Long id) {
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        Doctor curentDoctor = doctorRepository.findByEmail(username).orElseThrow(
-                () -> new DoctorNotFoundException(
-                        "Doctor with email " + username + " not found"));
+        Doctor curentDoctor = doctorService.getDoctorFromAuthentication();
 
         Appointment appointment = getAppointmentById(id);
 
