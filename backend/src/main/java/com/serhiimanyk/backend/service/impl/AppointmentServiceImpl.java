@@ -21,7 +21,6 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.access.AccessDeniedException;
@@ -192,6 +191,18 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (appointmentRepository.existsByTimeSlot_IdAndStatus(newTimeslotId, AppointmentStatus.CREATED)) {
             throw new InvalidTimeSlotException(
                     "TimeSlot is not available."
+            );
+        }
+        if(appointmentRepository.existsByPatient_IdAndTimeSlot_DateAndTimeSlot_StartTimeAndTimeSlot_EndTimeAndStatusAndIdNot(
+                appointment.getPatient().getId(),
+                newTimeSlot.getDate(),
+                newTimeSlot.getStartTime(),
+                newTimeSlot.getEndTime(),
+                AppointmentStatus.CREATED,
+                appointment.getId()
+        )){
+            throw new InvalidTimeSlotException(
+                    "Patient already has an appointment at this time."
             );
         }
 

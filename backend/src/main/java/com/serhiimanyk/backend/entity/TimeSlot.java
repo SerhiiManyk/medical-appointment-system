@@ -45,5 +45,4 @@ public class TimeSlot {
     @Column(name = "STATUS", nullable = false)
     private TimeSlotStatus status;
 
-
 }
