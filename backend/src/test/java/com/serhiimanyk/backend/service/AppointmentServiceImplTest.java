@@ -181,10 +181,9 @@ class AppointmentServiceImplTest {
         request.setDoctorId(doctor.getId());
         request.setTimeSlotId(10000L);
 
-        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
-        when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
         when(timeSlotRepository.findById(10000L)).thenReturn(Optional.empty());
-        when(patientService.isCurrentPatient(patient.getId())).thenReturn(true);
+        when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
+        when(patientService.getPatientFromAuthentication()).thenReturn(patient);
 
         TimeSlotNotFoundException exception = assertThrows(
                 TimeSlotNotFoundException.class,
@@ -192,8 +191,6 @@ class AppointmentServiceImplTest {
         );
 
         assertEquals("Timeslot with id 10000 is not found", exception.getMessage());
-        verify(patientRepository, times(1)).findById(patient.getId());
-        verify(doctorRepository, times(1)).findById(doctor.getId());
         verify(timeSlotRepository, times(1)).findById(10000L);
         verifyNoInteractions(appointmentRepository);
     }

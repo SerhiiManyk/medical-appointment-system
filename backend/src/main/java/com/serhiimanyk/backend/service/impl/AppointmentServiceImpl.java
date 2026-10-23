@@ -27,6 +27,7 @@ import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -48,12 +49,11 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public Appointment createAppointment(AppointmentCreateRequest request) {
 
-        if (!patientService.isCurrentPatient(request.getPatientId())) {
+        Patient patient = patientService.getPatientFromAuthentication();
+
+        if (!(patient.getId().equals( request.getPatientId()))) {
             throw new AccessDeniedException("You can only create appointments for yourself.");
         }
-
-        Patient patient = patientRepository.findById(request.getPatientId())
-                .orElseThrow(() -> new PatientNotFoundException("Patient with id " + request.getPatientId() + " is not found"));
 
         Doctor doctor = doctorRepository.findById(request.getDoctorId())
                 .orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + request.getDoctorId() + " is not found"));
