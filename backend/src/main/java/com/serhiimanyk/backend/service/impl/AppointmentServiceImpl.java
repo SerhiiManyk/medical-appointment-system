@@ -180,9 +180,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (appointment.getTimeSlot().getId().equals(newTimeSlot.getId())) {
             throw new InvalidTimeSlotException("Timeslot with id " + newTimeSlot.getId() + " is already in progress.");
         }
-        if (!appointment.getDoctor().getId().equals(newTimeSlot.getDoctor().getId())) {
+        if (!appointment.getDoctor().getSpecialization().equals(newTimeSlot.getDoctor().getSpecialization())) {
             throw new TimeSlotDoesNotBelongToDoctorException(
-                    "TimeSlot with id " + newTimeSlot.getId() + " does not belong to doctor with id " + appointment.getDoctor().getId());
+                    "Cannot reschedule appointment to a doctor with a different specialization.");
         }
         if (newTimeSlot.getStatus() != TimeSlotStatus.FREE) {
             throw new InvalidTimeSlotException(
@@ -209,6 +209,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.getTimeSlot().setStatus(TimeSlotStatus.FREE);
         newTimeSlot.setStatus(TimeSlotStatus.BOOKED);
         appointment.setTimeSlot(newTimeSlot);
+        appointment.setDoctor(newTimeSlot.getDoctor());
 
         return appointmentRepository.save(appointment);
     }

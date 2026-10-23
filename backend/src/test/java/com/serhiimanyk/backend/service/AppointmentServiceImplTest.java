@@ -6,6 +6,7 @@ import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.entity.TimeSlot;
 import com.serhiimanyk.backend.enums.AppointmentStatus;
+import com.serhiimanyk.backend.enums.Specialization;
 import com.serhiimanyk.backend.enums.TimeSlotStatus;
 import com.serhiimanyk.backend.exception.*;
 import com.serhiimanyk.backend.repository.*;
@@ -20,6 +21,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -536,11 +539,11 @@ class AppointmentServiceImplTest {
     @Test
     public void rescheduleAppointment_shouldRescheduleAppointmentSuccessfully() {
 
+        doctor.setSpecialization(Specialization.FAMILY_DOCTOR);
+
         Appointment appointment = new Appointment();
         appointment.setId(1L);
-
-        Doctor doctor = new Doctor();
-        doctor.setId(1L);
+        appointment.setPatient(patient);
         appointment.setDoctor(doctor);
 
         TimeSlot oldTimeSlot = new TimeSlot();
@@ -683,23 +686,23 @@ class AppointmentServiceImplTest {
     @Test
     public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotIsNotFree() {
 
-        Doctor doctor1 = new Doctor();
-        doctor1.setId(1L);
+        doctor.setSpecialization(Specialization.FAMILY_DOCTOR);
 
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setStatus(AppointmentStatus.CREATED);
-        appointment.setDoctor(doctor1);
+        appointment.setDoctor(doctor);
+        appointment.setPatient(patient);
 
         TimeSlot newTimeSlot = new TimeSlot();
         newTimeSlot.setId(2L);
         newTimeSlot.setStatus(TimeSlotStatus.BOOKED);
-        newTimeSlot.setDoctor(doctor1);
+        newTimeSlot.setDoctor(doctor);
 
         TimeSlot oldTimeSlot = new TimeSlot();
         oldTimeSlot.setId(1L);
         oldTimeSlot.setStatus(TimeSlotStatus.BOOKED);
-        oldTimeSlot.setDoctor(doctor1);
+        oldTimeSlot.setDoctor(doctor);
 
         appointment.setTimeSlot(oldTimeSlot);
 
@@ -719,28 +722,32 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotBelongsToAnotherDoctor() {
+    public void rescheduleAppointment_shouldRescheduleAppointmentSuccessfully_whenNewTimeSlotBelongsToAnotherDoctorWithTheSameSpecialization() {
 
-        Doctor doctor1 = new Doctor();
-        doctor1.setId(1L);
+        doctor.setSpecialization(Specialization.FAMILY_DOCTOR);
 
         Doctor doctor2 = new Doctor();
         doctor2.setId(2L);
+        doctor2.setSpecialization(Specialization.FAMILY_DOCTOR);
 
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setStatus(AppointmentStatus.CREATED);
-        appointment.setDoctor(doctor1);
+        appointment.setDoctor(doctor);
+        appointment.setPatient(patient);
 
         TimeSlot newTimeSlot = new TimeSlot();
         newTimeSlot.setId(2L);
         newTimeSlot.setStatus(TimeSlotStatus.FREE);
         newTimeSlot.setDoctor(doctor2);
+        newTimeSlot.setDate(LocalDate.of(2026, 11, 10));
+        newTimeSlot.setStartTime(LocalTime.of(10, 0));
+        newTimeSlot.setEndTime(LocalTime.of(10, 30));
 
         TimeSlot oldTimeSlot = new TimeSlot();
         oldTimeSlot.setId(1L);
         oldTimeSlot.setStatus(TimeSlotStatus.BOOKED);
-        oldTimeSlot.setDoctor(doctor1);
+        oldTimeSlot.setDoctor(doctor);
 
         appointment.setTimeSlot(oldTimeSlot);
 
@@ -750,13 +757,28 @@ class AppointmentServiceImplTest {
 
         when(timeSlotRepository.findById(2L)).thenReturn(Optional.of(newTimeSlot));
 
-        TimeSlotDoesNotBelongToDoctorException exception = assertThrows(TimeSlotDoesNotBelongToDoctorException.class,
-                () -> appointmentService.rescheduleAppointment(1L, 2L));
+        when(appointmentRepository.existsByPatient_IdAndTimeSlot_DateAndTimeSlot_StartTimeAndTimeSlot_EndTimeAndStatusAndIdNot(
+                1L,
+                newTimeSlot.getDate(),
+                newTimeSlot.getStartTime(),
+                newTimeSlot.getEndTime(),
+                AppointmentStatus.CREATED,
+                1L))
+                .thenReturn(false);
 
-        assertEquals("TimeSlot with id 2 does not belong to doctor with id 1", exception.getMessage());
-        verify(appointmentRepository, never()).save(any(Appointment.class));
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Appointment result = appointmentService.rescheduleAppointment(1L, 2L);
+
+        assertEquals(TimeSlotStatus.BOOKED, newTimeSlot.getStatus());
+        assertEquals(TimeSlotStatus.FREE, oldTimeSlot.getStatus());
+        assertEquals(newTimeSlot, result.getTimeSlot());
+
+        assertEquals(doctor2, result.getDoctor());
+
         verify(appointmentRepository, times(1)).findById(1L);
         verify(timeSlotRepository, times(1)).findById(2L);
+        verify(appointmentRepository, times(1)).save(appointment);
     }
 
     @Test
@@ -765,8 +787,6 @@ class AppointmentServiceImplTest {
         Appointment appointment = new Appointment();
         appointment.setId(1L);
 
-        Doctor doctor = new Doctor();
-        doctor.setId(1L);
         appointment.setDoctor(doctor);
 
         TimeSlot oldTimeSlot = new TimeSlot();
@@ -792,5 +812,46 @@ class AppointmentServiceImplTest {
         verify(appointmentRepository, never()).save(any(Appointment.class));
         verify(appointmentRepository, times(1)).findById(1L);
         verify(timeSlotRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    public void rescheduleAppointment_shouldThrowException_whenNewTimeSlotBelongsToDoctorWithOtherSpecialization() {
+
+        doctor.setSpecialization(Specialization.FAMILY_DOCTOR);
+
+        Doctor doctor2 = new Doctor();
+        doctor2.setId(2L);
+        doctor2.setSpecialization(Specialization.DERMATOLOGIST);
+
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setStatus(AppointmentStatus.CREATED);
+        appointment.setDoctor(doctor);
+
+        TimeSlot newTimeSlot = new TimeSlot();
+        newTimeSlot.setId(2L);
+        newTimeSlot.setStatus(TimeSlotStatus.FREE);
+        newTimeSlot.setDoctor(doctor2);
+
+        TimeSlot oldTimeSlot = new TimeSlot();
+        oldTimeSlot.setId(1L);
+        oldTimeSlot.setStatus(TimeSlotStatus.BOOKED);
+        oldTimeSlot.setDoctor(doctor);
+
+        appointment.setTimeSlot(oldTimeSlot);
+
+        when(doctorService.getDoctorFromAuthentication()).thenReturn(doctor);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        when(timeSlotRepository.findById(2L)).thenReturn(Optional.of(newTimeSlot));
+
+        TimeSlotDoesNotBelongToDoctorException exception = assertThrows(TimeSlotDoesNotBelongToDoctorException.class,
+                () -> appointmentService.rescheduleAppointment(1L, 2L));
+
+        assertEquals("Cannot reschedule appointment to a doctor with a different specialization.", exception.getMessage());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+        verify(appointmentRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, times(1)).findById(2L);
     }
 }
