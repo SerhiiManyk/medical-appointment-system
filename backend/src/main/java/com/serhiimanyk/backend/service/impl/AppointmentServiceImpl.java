@@ -27,7 +27,6 @@ import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @Transactional
@@ -58,7 +57,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         Doctor doctor = doctorRepository.findById(request.getDoctorId())
                 .orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + request.getDoctorId() + " is not found"));
 
-        TimeSlot timeSlot = timeSlotRepository.findById(request.getTimeSlotId())
+        TimeSlot timeSlot = timeSlotRepository.findTimeSlotByIdWithLock(request.getTimeSlotId())
                 .orElseThrow(() -> new TimeSlotNotFoundException("Timeslot with id " + request.getTimeSlotId() + " is not found"));
 
         if (timeSlot.getStatus() != TimeSlotStatus.FREE) {
@@ -174,7 +173,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new AppointmentAlreadyFinishedException("Appointment is already cancelled or completed.");
         }
 
-        TimeSlot newTimeSlot = timeSlotRepository.findById(newTimeslotId)
+        TimeSlot newTimeSlot = timeSlotRepository.findTimeSlotByIdWithLock(newTimeslotId)
                 .orElseThrow(() -> new TimeSlotNotFoundException("Time slot with id " + newTimeslotId + " not found"));
 
         if (appointment.getTimeSlot().getId().equals(newTimeSlot.getId())) {

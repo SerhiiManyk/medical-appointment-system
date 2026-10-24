@@ -106,7 +106,7 @@ class AppointmentServiceImplTest {
 
         when(patientService.getPatientFromAuthentication()).thenReturn(patient);
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
-        when(timeSlotRepository.findById(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
+        when(timeSlotRepository.findTimeSlotByIdWithLock(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
 
         Appointment expectedAppointment = new Appointment();
         expectedAppointment.setPatient(patient);
@@ -126,7 +126,7 @@ class AppointmentServiceImplTest {
 
         verify(patientService).getPatientFromAuthentication();
         verify(doctorRepository).findById(doctor.getId());
-        verify(timeSlotRepository).findById(timeSlot.getId());
+        verify(timeSlotRepository).findTimeSlotByIdWithLock(timeSlot.getId());
         verify(appointmentRepository, times(1)).save(any(Appointment.class));
     }
 
@@ -184,7 +184,7 @@ class AppointmentServiceImplTest {
         request.setDoctorId(doctor.getId());
         request.setTimeSlotId(10000L);
 
-        when(timeSlotRepository.findById(10000L)).thenReturn(Optional.empty());
+        when(timeSlotRepository.findTimeSlotByIdWithLock(10000L)).thenReturn(Optional.empty());
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
         when(patientService.getPatientFromAuthentication()).thenReturn(patient);
 
@@ -194,7 +194,7 @@ class AppointmentServiceImplTest {
         );
 
         assertEquals("Timeslot with id 10000 is not found", exception.getMessage());
-        verify(timeSlotRepository, times(1)).findById(10000L);
+        verify(timeSlotRepository, times(1)).findTimeSlotByIdWithLock(10000L);
         verifyNoInteractions(appointmentRepository);
     }
 
@@ -208,7 +208,7 @@ class AppointmentServiceImplTest {
 
         when(patientService.getPatientFromAuthentication()).thenReturn(patient);
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
-        when(timeSlotRepository.findById(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
+        when(timeSlotRepository.findTimeSlotByIdWithLock(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
         timeSlot.setStatus(TimeSlotStatus.BOOKED);
 
         InvalidTimeSlotException exception = assertThrows(
@@ -219,7 +219,7 @@ class AppointmentServiceImplTest {
         assertEquals("TimeSlot is not available.", exception.getMessage());
         verify(patientService, times(1)).getPatientFromAuthentication();
         verify(doctorRepository, times(1)).findById(doctor.getId());
-        verify(timeSlotRepository, times(1)).findById(timeSlot.getId());
+        verify(timeSlotRepository, times(1)).findTimeSlotByIdWithLock(timeSlot.getId());
         verifyNoInteractions(appointmentRepository);
     }
 
@@ -236,7 +236,7 @@ class AppointmentServiceImplTest {
 
         when(patientService.getPatientFromAuthentication()).thenReturn(patient);
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
-        when(timeSlotRepository.findById(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
+        when(timeSlotRepository.findTimeSlotByIdWithLock(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
         timeSlot.setDoctor(testDoctor);
 
         TimeSlotDoesNotBelongToDoctorException exception = assertThrows(
@@ -247,7 +247,7 @@ class AppointmentServiceImplTest {
         assertEquals("TimeSlot with id 1 does not belong to doctor with id 1", exception.getMessage());
         verify(patientService, times(1)).getPatientFromAuthentication();
         verify(doctorRepository, times(1)).findById(doctor.getId());
-        verify(timeSlotRepository, times(1)).findById(timeSlot.getId());
+        verify(timeSlotRepository, times(1)).findTimeSlotByIdWithLock(timeSlot.getId());
         verifyNoInteractions(appointmentRepository);
     }
 
@@ -558,7 +558,7 @@ class AppointmentServiceImplTest {
         when(doctorService.getDoctorFromAuthentication()).thenReturn(doctor);
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
-        when(timeSlotRepository.findById(2L)).thenReturn(Optional.of(newTimeSlot));
+        when(timeSlotRepository.findTimeSlotByIdWithLock(2L)).thenReturn(Optional.of(newTimeSlot));
 
         when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -569,7 +569,7 @@ class AppointmentServiceImplTest {
         assertEquals(newTimeSlot, result.getTimeSlot());
 
         verify(appointmentRepository, times(1)).findById(1L);
-        verify(timeSlotRepository, times(1)).findById(2L);
+        verify(timeSlotRepository, times(1)).findTimeSlotByIdWithLock(2L);
         verify(appointmentRepository, times(1)).save(appointment);
     }
 
@@ -670,7 +670,7 @@ class AppointmentServiceImplTest {
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        when(timeSlotRepository.findById(2L)).thenReturn(Optional.empty());
+        when(timeSlotRepository.findTimeSlotByIdWithLock(2L)).thenReturn(Optional.empty());
 
         TimeSlotNotFoundException exception = assertThrows(TimeSlotNotFoundException.class,
                 () -> appointmentService.rescheduleAppointment(1L, 2L));
@@ -678,7 +678,7 @@ class AppointmentServiceImplTest {
         assertEquals("Time slot with id 2 not found", exception.getMessage());
         verify(appointmentRepository, never()).save(any(Appointment.class));
         verify(appointmentRepository, times(1)).findById(1L);
-        verify(timeSlotRepository, times(1)).findById(2L);
+        verify(timeSlotRepository, times(1)).findTimeSlotByIdWithLock(2L);
     }
 
     @Test
@@ -708,7 +708,7 @@ class AppointmentServiceImplTest {
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        when(timeSlotRepository.findById(2L)).thenReturn(Optional.of(newTimeSlot));
+        when(timeSlotRepository.findTimeSlotByIdWithLock(2L)).thenReturn(Optional.of(newTimeSlot));
 
         InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
                 () -> appointmentService.rescheduleAppointment(1L, 2L));
@@ -716,7 +716,7 @@ class AppointmentServiceImplTest {
         assertEquals("TimeSlot is not available.", exception.getMessage());
         verify(appointmentRepository, never()).save(any(Appointment.class));
         verify(appointmentRepository, times(1)).findById(1L);
-        verify(timeSlotRepository, times(1)).findById(2L);
+        verify(timeSlotRepository, times(1)).findTimeSlotByIdWithLock(2L);
     }
 
     @Test
@@ -753,7 +753,7 @@ class AppointmentServiceImplTest {
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        when(timeSlotRepository.findById(2L)).thenReturn(Optional.of(newTimeSlot));
+        when(timeSlotRepository.findTimeSlotByIdWithLock(2L)).thenReturn(Optional.of(newTimeSlot));
 
         when(appointmentRepository.existsByPatient_IdAndTimeSlot_DateAndTimeSlot_StartTimeAndTimeSlot_EndTimeAndStatusAndIdNot(
                 1L,
@@ -775,7 +775,7 @@ class AppointmentServiceImplTest {
         assertEquals(doctor2, result.getDoctor());
 
         verify(appointmentRepository, times(1)).findById(1L);
-        verify(timeSlotRepository, times(1)).findById(2L);
+        verify(timeSlotRepository, times(1)).findTimeSlotByIdWithLock(2L);
         verify(appointmentRepository, times(1)).save(appointment);
     }
 
@@ -802,14 +802,14 @@ class AppointmentServiceImplTest {
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(newTimeSlot));
+        when(timeSlotRepository.findTimeSlotByIdWithLock(1L)).thenReturn(Optional.of(newTimeSlot));
 
         InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
                 () -> appointmentService.rescheduleAppointment(1L, 1L));
         assertEquals("Timeslot with id 1 is already in progress.", exception.getMessage());
         verify(appointmentRepository, never()).save(any(Appointment.class));
         verify(appointmentRepository, times(1)).findById(1L);
-        verify(timeSlotRepository, times(1)).findById(1L);
+        verify(timeSlotRepository, times(1)).findTimeSlotByIdWithLock(1L);
     }
 
     @Test
@@ -842,7 +842,7 @@ class AppointmentServiceImplTest {
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        when(timeSlotRepository.findById(2L)).thenReturn(Optional.of(newTimeSlot));
+        when(timeSlotRepository.findTimeSlotByIdWithLock(2L)).thenReturn(Optional.of(newTimeSlot));
 
         TimeSlotDoesNotBelongToDoctorException exception = assertThrows(TimeSlotDoesNotBelongToDoctorException.class,
                 () -> appointmentService.rescheduleAppointment(1L, 2L));
@@ -850,6 +850,6 @@ class AppointmentServiceImplTest {
         assertEquals("Cannot reschedule appointment to a doctor with a different specialization.", exception.getMessage());
         verify(appointmentRepository, never()).save(any(Appointment.class));
         verify(appointmentRepository, times(1)).findById(1L);
-        verify(timeSlotRepository, times(1)).findById(2L);
+        verify(timeSlotRepository, times(1)).findTimeSlotByIdWithLock(2L);
     }
 }
