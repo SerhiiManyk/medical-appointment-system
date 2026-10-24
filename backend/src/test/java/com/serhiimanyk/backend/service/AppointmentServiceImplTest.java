@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -66,6 +67,7 @@ class AppointmentServiceImplTest {
 
         patient = new Patient();
         patient.setId(1L);
+        patient.setEmail("test@email.com");
     }
 
     @BeforeEach
@@ -102,8 +104,7 @@ class AppointmentServiceImplTest {
         request.setDoctorId(doctor.getId());
         request.setTimeSlotId(timeSlot.getId());
 
-        when(patientService.isCurrentPatient(patient.getId())).thenReturn(true);
-        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
+        when(patientService.getPatientFromAuthentication()).thenReturn(patient);
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
         when(timeSlotRepository.findById(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
 
@@ -123,7 +124,7 @@ class AppointmentServiceImplTest {
         assertEquals(expectedAppointment.getStatus(), actualAppointment.getStatus());
         assertEquals(TimeSlotStatus.BOOKED, actualAppointment.getTimeSlot().getStatus());
 
-        verify(patientRepository).findById(patient.getId());
+        verify(patientService).getPatientFromAuthentication();
         verify(doctorRepository).findById(doctor.getId());
         verify(timeSlotRepository).findById(timeSlot.getId());
         verify(appointmentRepository, times(1)).save(any(Appointment.class));
@@ -137,16 +138,19 @@ class AppointmentServiceImplTest {
         request.setDoctorId(doctor.getId());
         request.setTimeSlotId(timeSlot.getId());
 
-        when(patientService.isCurrentPatient(10000L)).thenReturn(true);
-        when(patientRepository.findById(10000L)).thenReturn(Optional.empty());
+        when(patientService.getPatientFromAuthentication()).thenThrow(new UsernameNotFoundException(
+                "Patient with email test@email.com not found"
+        ));
 
-        PatientNotFoundException exception = assertThrows(
-                PatientNotFoundException.class,
+        UsernameNotFoundException exception = assertThrows(
+                UsernameNotFoundException.class,
                 () -> appointmentService.createAppointment(request)
         );
 
-        assertEquals("Patient with id 10000 is not found", exception.getMessage());
-        verify(patientRepository, times(1)).findById(10000L);
+        assertEquals(
+                "Patient with email test@email.com not found",
+                exception.getMessage()
+        );
         verifyNoInteractions(doctorRepository, timeSlotRepository, appointmentRepository);
     }
 
@@ -158,9 +162,8 @@ class AppointmentServiceImplTest {
         request.setDoctorId(10000L);
         request.setTimeSlotId(timeSlot.getId());
 
-        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
+        when(patientService.getPatientFromAuthentication()).thenReturn(patient);
         when(doctorRepository.findById(10000L)).thenReturn(Optional.empty());
-        when(patientService.isCurrentPatient(patient.getId())).thenReturn(true);
 
         DoctorNotFoundException exception = assertThrows(
                 DoctorNotFoundException.class,
@@ -168,7 +171,7 @@ class AppointmentServiceImplTest {
         );
 
         assertEquals("Doctor with id 10000 is not found", exception.getMessage());
-        verify(patientRepository, times(1)).findById(patient.getId());
+        verify(patientService, times(1)).getPatientFromAuthentication();
         verify(doctorRepository, times(1)).findById(10000L);
         verifyNoInteractions(timeSlotRepository, appointmentRepository);
     }
@@ -203,10 +206,9 @@ class AppointmentServiceImplTest {
         request.setDoctorId(doctor.getId());
         request.setTimeSlotId(timeSlot.getId());
 
-        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
+        when(patientService.getPatientFromAuthentication()).thenReturn(patient);
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
         when(timeSlotRepository.findById(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
-        when(patientService.isCurrentPatient(patient.getId())).thenReturn(true);
         timeSlot.setStatus(TimeSlotStatus.BOOKED);
 
         InvalidTimeSlotException exception = assertThrows(
@@ -215,7 +217,7 @@ class AppointmentServiceImplTest {
         );
 
         assertEquals("TimeSlot is not available.", exception.getMessage());
-        verify(patientRepository, times(1)).findById(patient.getId());
+        verify(patientService, times(1)).getPatientFromAuthentication();
         verify(doctorRepository, times(1)).findById(doctor.getId());
         verify(timeSlotRepository, times(1)).findById(timeSlot.getId());
         verifyNoInteractions(appointmentRepository);
@@ -232,10 +234,9 @@ class AppointmentServiceImplTest {
         request.setDoctorId(doctor.getId());
         request.setTimeSlotId(timeSlot.getId());
 
-        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
+        when(patientService.getPatientFromAuthentication()).thenReturn(patient);
         when(doctorRepository.findById(doctor.getId())).thenReturn(Optional.of(doctor));
         when(timeSlotRepository.findById(timeSlot.getId())).thenReturn(Optional.of(timeSlot));
-        when(patientService.isCurrentPatient(patient.getId())).thenReturn(true);
         timeSlot.setDoctor(testDoctor);
 
         TimeSlotDoesNotBelongToDoctorException exception = assertThrows(
@@ -244,7 +245,7 @@ class AppointmentServiceImplTest {
         );
 
         assertEquals("TimeSlot with id 1 does not belong to doctor with id 1", exception.getMessage());
-        verify(patientRepository, times(1)).findById(patient.getId());
+        verify(patientService, times(1)).getPatientFromAuthentication();
         verify(doctorRepository, times(1)).findById(doctor.getId());
         verify(timeSlotRepository, times(1)).findById(timeSlot.getId());
         verifyNoInteractions(appointmentRepository);
