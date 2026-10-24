@@ -10,12 +10,17 @@ import com.serhiimanyk.backend.exception.TimeSlotNotFoundException;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
 import com.serhiimanyk.backend.service.impl.TimeslotServiceImpl;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -45,6 +50,7 @@ public class TimeslotServiceImplTest {
 
         doctor = new Doctor();
         doctor.setId(1L);
+        doctor.setEmail("doctor@test.mail");
     }
 
     @BeforeEach
@@ -53,6 +59,11 @@ public class TimeslotServiceImplTest {
         timeSlot.setId(1L);
         timeSlot.setStatus(TimeSlotStatus.FREE);
         timeSlot.setDoctor(doctor);
+    }
+
+    @AfterEach
+    public void clearContext() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -186,6 +197,14 @@ public class TimeslotServiceImplTest {
     @Test
     public void getAllTimeSlotsByDoctorId_shouldReturnTimeSlotsSuccessfully() {
 
+         SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.mail",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
+
         TimeSlot timeSlot1 = new TimeSlot();
         timeSlot1.setId(1L);
         timeSlot1.setDoctor(doctor);
@@ -196,45 +215,61 @@ public class TimeslotServiceImplTest {
 
         List<TimeSlot> timeSlots = List.of(timeSlot1, timeSlot2);
 
-        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
         when(timeSlotRepository.findAllByDoctorId(doctor.getId())).thenReturn(timeSlots);
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         List<TimeSlot> result = timeslotService.getAllTimeSlotsByDoctorId(doctor.getId());
 
         assertEquals(timeSlots, result);
 
+        verify(doctorRepository,times(1)).findByEmail(doctor.getEmail());
         verify(timeSlotRepository, times(1)).findAllByDoctorId(doctor.getId());
-        verify(doctorRepository, times(1)).findById(1L);
     }
 
     @Test
     public void getAllTimeSlotsByDoctorId_shouldReturnEmptyListWhenDoctorHasNoTimeSlots() {
 
-        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.mail",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
 
         List<TimeSlot> timeSlots = List.of();
 
         when(timeSlotRepository.findAllByDoctorId(doctor.getId())).thenReturn(timeSlots);
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         List<TimeSlot> result = timeslotService.getAllTimeSlotsByDoctorId(doctor.getId());
 
         assertEquals(timeSlots, result);
         assertTrue(result.isEmpty());
+        verify(doctorRepository,times(1)).findByEmail(doctor.getEmail());
         verify(timeSlotRepository, times(1)).findAllByDoctorId(doctor.getId());
-        verify(doctorRepository, times(1)).findById(1L);
+
     }
 
     @Test
     public void getAllTimeSlotsByDoctorId_shouldThrowExceptionWhenDoctorNotFound() {
 
-        when(doctorRepository.findById(1L)).thenReturn(Optional.empty());
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.mail",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
+
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenThrow(new DoctorNotFoundException(
+                "Doctor with email doctor@test.mail is not found."));
 
         DoctorNotFoundException exception = assertThrows(DoctorNotFoundException.class,
                 () -> timeslotService.getAllTimeSlotsByDoctorId(doctor.getId()));
 
-        assertEquals("Doctor with id 1 is not found.", exception.getMessage());
+        assertEquals("Doctor with email doctor@test.mail is not found.", exception.getMessage());
         verifyNoInteractions(timeSlotRepository);
-        verify(doctorRepository, times(1)).findById(1L);
     }
 
     @Test
@@ -377,6 +412,14 @@ public class TimeslotServiceImplTest {
     @Test
     public void blockTimeSlot_shouldBlockFreeTimeSlotSuccessfully() {
 
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.mail",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
+
         LocalDate futureDate = LocalDate.now().plusDays(1);
 
         TimeSlot timeSlot = new TimeSlot();
@@ -385,6 +428,7 @@ public class TimeslotServiceImplTest {
         timeSlot.setStatus(TimeSlotStatus.FREE);
         timeSlot.setDoctor(doctor);
 
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
         when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
         when(timeSlotRepository.save(timeSlot)).thenReturn(timeSlot);
 
@@ -400,7 +444,16 @@ public class TimeslotServiceImplTest {
     @Test
     public void blockTimeSlot_shouldThrowExceptionWhenTimeSlotNotFound() {
 
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.mail",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
+
         when(timeSlotRepository.findById(1L)).thenReturn(Optional.empty());
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         TimeSlotNotFoundException exception = assertThrows(TimeSlotNotFoundException.class,
                 () -> timeslotService.blockTimeSlot(doctor.getId(), 1L));
@@ -412,6 +465,14 @@ public class TimeslotServiceImplTest {
 
     @Test
     public void blockTimeSlot_shouldThrowExceptionWhenTimeSlotDoesNotBelongToDoctor() {
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.mail",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
 
         Doctor faceDoctor = new Doctor();
         faceDoctor.setId(2L);
@@ -425,6 +486,7 @@ public class TimeslotServiceImplTest {
         timeSlot.setDoctor(faceDoctor);
 
         when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         TimeSlotDoesNotBelongToDoctorException exception = assertThrows(TimeSlotDoesNotBelongToDoctorException.class,
                 () -> timeslotService.blockTimeSlot(doctor.getId(), timeSlot.getId()));
@@ -437,6 +499,14 @@ public class TimeslotServiceImplTest {
     @Test
     public void blockTimeSlot_shouldThrowExceptionWhenTimeSlotAlreadyBlocked() {
 
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.mail",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
+
         LocalDate futureDate = LocalDate.now().plusDays(1);
 
         TimeSlot timeSlot = new TimeSlot();
@@ -446,6 +516,7 @@ public class TimeslotServiceImplTest {
         timeSlot.setDoctor(doctor);
 
         when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
                 () -> timeslotService.blockTimeSlot(doctor.getId(), timeSlot.getId()));
@@ -459,6 +530,14 @@ public class TimeslotServiceImplTest {
     @Test
     public void blockTimeSlot_shouldThrowExceptionWhenTimeSlotIsBooked() {
 
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.mail",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
+
         LocalDate futureDate = LocalDate.now().plusDays(1);
 
         TimeSlot timeSlot = new TimeSlot();
@@ -468,6 +547,7 @@ public class TimeslotServiceImplTest {
         timeSlot.setDoctor(doctor);
 
         when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
                 () -> timeslotService.blockTimeSlot(doctor.getId(), timeSlot.getId()));
@@ -481,6 +561,14 @@ public class TimeslotServiceImplTest {
     @Test
     public void deleteTimeSlot_shouldDeleteTimeSlotSuccessfully() {
 
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.mail",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
+
         LocalDate futureDate = LocalDate.now().plusDays(1);
 
         TimeSlot timeSlot = new TimeSlot();
@@ -490,6 +578,7 @@ public class TimeslotServiceImplTest {
         timeSlot.setDoctor(doctor);
 
         when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         timeslotService.deleteTimeSlot(doctor.getId(), timeSlot.getId());
 
@@ -500,7 +589,16 @@ public class TimeslotServiceImplTest {
     @Test
     public void deleteTimeSlot_shouldThrowExceptionWhenTimeSlotNotFound() {
 
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.mail",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
+
         when(timeSlotRepository.findById(1L)).thenReturn(Optional.empty());
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         TimeSlotNotFoundException exception = assertThrows(TimeSlotNotFoundException.class,
                 () -> timeslotService.deleteTimeSlot(doctor.getId(), timeSlot.getId()));
@@ -513,6 +611,14 @@ public class TimeslotServiceImplTest {
     @Test
     public void deleteTimeSlot_shouldThrowExceptionWhenTimeSlotIsBooked() {
 
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "doctor@test.mail",
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
+
         LocalDate futureDate = LocalDate.now().plusDays(1);
 
         TimeSlot timeSlot = new TimeSlot();
@@ -522,6 +628,7 @@ public class TimeslotServiceImplTest {
         timeSlot.setDoctor(doctor);
 
         when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot));
+        when(doctorRepository.findByEmail("doctor@test.mail")).thenReturn(Optional.of(doctor));
 
         InvalidTimeSlotException exception = assertThrows(InvalidTimeSlotException.class,
                 () -> timeslotService.deleteTimeSlot(doctor.getId(), timeSlot.getId()));

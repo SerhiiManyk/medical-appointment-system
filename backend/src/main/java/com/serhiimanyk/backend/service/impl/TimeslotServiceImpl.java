@@ -67,7 +67,6 @@ public class TimeslotServiceImpl implements TimeSlotService {
             throw new TimeSlotDoesNotBelongToDoctorException("Time slots doesn't belong to Doctor.");
         }
 
-        doctorRepository.findById(doctorId).orElseThrow(() -> new DoctorNotFoundException("Doctor with id " + doctorId + " is not found."));
         return timeSlotRepository.findAllByDoctorId(doctorId);
     }
 
