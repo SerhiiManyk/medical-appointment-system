@@ -7,12 +7,16 @@ import com.serhiimanyk.backend.exception.PatientNotFoundException;
 import com.serhiimanyk.backend.mapper.PatientMapper;
 import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.service.impl.PatientServiceImpl;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -41,10 +45,24 @@ public class PatientServiceImplTest {
 
     @BeforeEach
     public void setup() {
+
         patient = new Patient();
         patient.setId(1L);
         patient.setEmail("patient@test.com");
         patient.setPassword("password");
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        patient.getEmail(),
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_PATIENT"))
+                )
+        );
+    }
+
+    @AfterEach
+    public void cleanContext() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -75,6 +93,7 @@ public class PatientServiceImplTest {
     @Test
     public void getPatientById_shouldReturnPatientSuccessfully() {
 
+        when(patientRepository.findByEmail(patient.getEmail())).thenReturn(Optional.of(patient));
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
 
         Patient result = patientService.getPatientById(patient.getId());
@@ -82,11 +101,13 @@ public class PatientServiceImplTest {
         assertEquals(patient, result);
 
         verify(patientRepository, times(1)).findById(patient.getId());
+        verify(patientRepository, times(1)).findByEmail(patient.getEmail());
     }
 
     @Test
     public void getPatientById_shouldThrowExceptionWhenPatientNotFound() {
 
+        when(patientRepository.findByEmail(patient.getEmail())).thenReturn(Optional.of(patient));
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.empty());
 
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
@@ -95,6 +116,7 @@ public class PatientServiceImplTest {
         assertEquals("Patient with id " + patient.getId() + " is not found", exception.getMessage());
 
         verify(patientRepository, times(1)).findById(patient.getId());
+        verify(patientRepository, times(1)).findByEmail(patient.getEmail());
     }
 
     @Test
@@ -160,6 +182,7 @@ public class PatientServiceImplTest {
         PatientUpdateRequest updatePatient = new PatientUpdateRequest();
         updatePatient.setEmail(patient.getEmail());
 
+        when(patientRepository.findByEmail(patient.getEmail())).thenReturn(Optional.of(patient));
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
         when(patientRepository.save(patient)).thenReturn(patient);
 
@@ -173,6 +196,7 @@ public class PatientServiceImplTest {
         verify(patientMapper, times(1)).updatePatientFromRequest(updatePatient, patient);
         verify(patientRepository, times(1)).save(patient);
         verify(passwordEncoder, never()).encode(patient.getPassword());
+        verify(patientRepository, times(1)).findByEmail(patient.getEmail());
     }
 
     @Test
@@ -181,6 +205,7 @@ public class PatientServiceImplTest {
         PatientUpdateRequest updatePatient = new PatientUpdateRequest();
         updatePatient.setEmail("change@test.com");
 
+        when(patientRepository.findByEmail(patient.getEmail())).thenReturn(Optional.of(patient));
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
         when(patientRepository.save(patient)).thenReturn(patient);
         when(patientRepository.existsByEmailAndIdNot(updatePatient.getEmail(), patient.getId())).thenReturn(false);
@@ -193,6 +218,7 @@ public class PatientServiceImplTest {
         verify(patientMapper, times(1)).updatePatientFromRequest(updatePatient, patient);
         verify(patientRepository, times(1)).save(patient);
         verify(passwordEncoder, never()).encode(patient.getPassword());
+        verify(patientRepository, times(1)).findByEmail(patient.getEmail());
     }
 
     @Test
@@ -201,6 +227,7 @@ public class PatientServiceImplTest {
         PatientUpdateRequest updatePatient = new PatientUpdateRequest();
         updatePatient.setEmail("change@test.com");
 
+        when(patientRepository.findByEmail(patient.getEmail())).thenReturn(Optional.of(patient));
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
         when(patientRepository.existsByEmailAndIdNot(updatePatient.getEmail(), patient.getId())).thenReturn(true);
 
@@ -211,6 +238,7 @@ public class PatientServiceImplTest {
         verify(patientRepository, times(1)).findById(patient.getId());
         verify(patientRepository, never()).save(any());
         verify(patientRepository, times(1)).existsByEmailAndIdNot(updatePatient.getEmail(), patient.getId());
+        verify(patientRepository, times(1)).findByEmail(patient.getEmail());
     }
 
     @Test
@@ -219,6 +247,7 @@ public class PatientServiceImplTest {
         PatientUpdateRequest updatePatient = new PatientUpdateRequest();
         updatePatient.setEmail("change@test.com");
 
+        when(patientRepository.findByEmail(patient.getEmail())).thenReturn(Optional.of(patient));
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.empty());
 
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
@@ -228,6 +257,7 @@ public class PatientServiceImplTest {
 
         verify(patientRepository, times(1)).findById(patient.getId());
         verify(patientRepository, never()).save(any());
+        verify(patientRepository, times(1)).findByEmail(patient.getEmail());
     }
 
     @Test
@@ -236,6 +266,7 @@ public class PatientServiceImplTest {
         PatientUpdateRequest updatePatient = new PatientUpdateRequest();
         updatePatient.setPassword("newPassword");
 
+        when(patientRepository.findByEmail(patient.getEmail())).thenReturn(Optional.of(patient));
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
         when(passwordEncoder.encode(updatePatient.getPassword())).thenReturn("newPassword_encoded");
         when(patientRepository.save(patient)).thenReturn(patient);
@@ -255,6 +286,7 @@ public class PatientServiceImplTest {
     @Test
     public void deletePatientById_shouldDeletePatientSuccessfully() {
 
+        when(patientRepository.findByEmail(patient.getEmail())).thenReturn(Optional.of(patient));
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
 
         patientService.deletePatientById(patient.getId());
@@ -266,6 +298,7 @@ public class PatientServiceImplTest {
     @Test
     public void deletePatientById_shouldThrowExceptionWhenPatientNotFound() {
 
+        when(patientRepository.findByEmail(patient.getEmail())).thenReturn(Optional.of(patient));
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.empty());
 
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
