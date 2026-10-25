@@ -638,5 +638,4 @@ public class TimeslotServiceImplTest {
         verify(timeSlotRepository, times(1)).findById(1L);
         verify(timeSlotRepository, never()).delete(any(TimeSlot.class));
     }
-
 }
