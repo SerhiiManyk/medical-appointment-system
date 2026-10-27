@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -38,21 +39,22 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public Patient getPatientById(Long id){
+    public Patient getPatientById(Long id) {
 
         Authentication authentication =
-                 SecurityContextHolder.getContext().getAuthentication();
+                SecurityContextHolder.getContext().getAuthentication();
 
-        Collection<? extends GrantedAuthority> authorities =authentication.getAuthorities();
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 
         if (authorities.contains(new SimpleGrantedAuthority("ROLE_DOCTOR"))) {
             return patientRepository.findById(id)
                     .orElseThrow(() -> new PatientNotFoundException("Patient with id " + id + " is not found"));
         }
-        if(isCurrentPatient(id)){
+        if (isCurrentPatient(id)) {
             return patientRepository.findById(id)
                     .orElseThrow(() -> new PatientNotFoundException("Patient with id " + id + " is not found"));
-        }throw new AccessDeniedException("Access Denied");
+        }
+        throw new AccessDeniedException("Access Denied");
     }
 
     @Override
@@ -77,6 +79,12 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public Patient updatePatient(PatientUpdateRequest request, Long id) {
+
+        java.util.Collection<?> roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+
+        if (!roles.contains(new SimpleGrantedAuthority("ROLE_PATIENT"))) {
+            throw new AccessDeniedException("Only patients can update patient data");
+        }
 
         Patient patientToUpdate = getPatientById(id);
 
@@ -103,6 +111,12 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public void deletePatientById(Long id) {
+
+        java.util.Collection<?> roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+
+        if (!roles.contains(new SimpleGrantedAuthority("ROLE_PATIENT"))) {
+            throw new AccessDeniedException("Only patients can delete his/her patient data");
+        }
 
         Patient patient = getPatientById(id);
 

@@ -1,6 +1,7 @@
 package com.serhiimanyk.backend.service;
 
 import com.serhiimanyk.backend.dto.request.PatientUpdateRequest;
+import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.exception.EmailAlreadyExistsException;
 import com.serhiimanyk.backend.exception.PatientNotFoundException;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -284,6 +286,30 @@ public class PatientServiceImplTest {
     }
 
     @Test
+    public void updatePatient_shouldThrowAccessDeniedExceptionWhenDoctorUpdatesPatient(){
+
+        Doctor doctor = new Doctor();
+        doctor.setId(1L);
+        doctor.setEmail("doctorTest@mail.com");
+        doctor.setPassword("password");
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        doctor.getEmail(),
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
+
+        PatientUpdateRequest updatePatient = new PatientUpdateRequest();
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                () -> patientService.updatePatient(updatePatient, patient.getId()));
+
+        verify(patientRepository, never()).save(any());
+    }
+
+    @Test
     public void deletePatientById_shouldDeletePatientSuccessfully() {
 
         when(patientRepository.findByEmail(patient.getEmail())).thenReturn(Optional.of(patient));
@@ -307,6 +333,47 @@ public class PatientServiceImplTest {
         assertEquals("Patient with id " + patient.getId() + " is not found", exception.getMessage());
 
         verify(patientRepository, times(1)).findById(patient.getId());
+        verify(patientRepository, never()).delete(any());
+    }
+
+    @Test
+    public void deletePatientById_shouldThrowAccessDeniedExceptionWhenDoctorDeletesPatient(){
+
+        Doctor doctor = new Doctor();
+        doctor.setId(1L);
+        doctor.setEmail("doctorTest@mail.com");
+        doctor.setPassword("password");
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        doctor.getEmail(),
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+                )
+        );
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                () -> patientService.deletePatientById(patient.getId()));
+
+        verify(patientRepository, never()).delete(any());
+    }
+
+    @Test
+    public void deletePatientById_shouldThrowAccessDeniedExceptionWhenPatientDeletesAnotherPatient(){
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        patient.getEmail(),
+                        patient.getPassword(),
+                        List.of(new SimpleGrantedAuthority("ROLE_PATIENT"))
+                )
+        );
+
+        when(patientRepository.findByEmail(patient.getEmail())).thenReturn(Optional.of(patient));
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                () -> patientService.deletePatientById(2L));
+
         verify(patientRepository, never()).delete(any());
     }
 }
