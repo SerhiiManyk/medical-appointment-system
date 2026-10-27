@@ -5,12 +5,10 @@ import com.serhiimanyk.backend.entity.Appointment;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.entity.TimeSlot;
-import com.serhiimanyk.backend.enums.Gender;
-import com.serhiimanyk.backend.enums.Role;
-import com.serhiimanyk.backend.enums.Specialization;
-import com.serhiimanyk.backend.enums.TimeSlotStatus;
+import com.serhiimanyk.backend.enums.*;
 import com.serhiimanyk.backend.exception.InvalidTimeSlotException;
 import com.serhiimanyk.backend.exception.TimeSlotNotFoundException;
+import com.serhiimanyk.backend.repository.AppointmentRepository;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
@@ -50,6 +48,9 @@ public class AppointmentConcurrencyTest {
 
     @Autowired
     private TimeSlotRepository timeSlotRepository;
+
+    @Autowired
+    private AppointmentRepository  appointmentRepository;
 
     private Doctor createTestDoctor() {
         Doctor doctor = new Doctor();
@@ -174,6 +175,9 @@ public class AppointmentConcurrencyTest {
                     () -> new TimeSlotNotFoundException("TimeSlot with id " + timeSlot.getId() + " not found")
             );
             assertEquals(TimeSlotStatus.BOOKED, resultTimeSlot.getStatus());
+            assertEquals(1L,appointmentRepository.countByTimeSlot_IdAndStatus(
+                    timeSlot.getId(),
+                    AppointmentStatus.CREATED));
         } finally {
             executor.shutdown();
         }

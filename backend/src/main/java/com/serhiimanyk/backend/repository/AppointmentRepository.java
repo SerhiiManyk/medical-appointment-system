@@ -24,4 +24,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             LocalTime endTime,
             AppointmentStatus status,
             Long appointmentId);
+
+    long countByTimeSlot_IdAndStatus(Long timeSlotId, AppointmentStatus status);
 }
