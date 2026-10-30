@@ -1,8 +1,6 @@
 package com.serhiimanyk.backend.dto.request;
 
 import com.serhiimanyk.backend.enums.Specialization;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;

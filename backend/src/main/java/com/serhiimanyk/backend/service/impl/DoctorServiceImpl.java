@@ -11,6 +11,7 @@ import com.serhiimanyk.backend.mapper.DoctorMapper;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.service.DoctorService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -71,6 +72,10 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     public Doctor updateDoctor(DoctorRequest request, Long id) {
 
+        if (!isCurrentDoctor(id)) {
+            throw new AccessDeniedException("You dont have access to make changes");
+        }
+
         Doctor doctorToUpdate = getDoctorById(id);
 
         if (!doctorToUpdate.getEmail().equals(request.getEmail())) {
@@ -91,6 +96,10 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public void deleteDoctorById(Long id) {
+
+        if (!isCurrentDoctor(id)) {
+            throw new AccessDeniedException("You don't have access to delete other doctors");
+        }
 
         Doctor doctor = getDoctorById(id);
 
