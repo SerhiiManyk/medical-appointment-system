@@ -1,5 +1,6 @@
 package com.serhiimanyk.backend.mapper;
 
+import com.serhiimanyk.backend.dto.request.DoctorCreateRequest;
 import com.serhiimanyk.backend.dto.request.DoctorRequest;
 import com.serhiimanyk.backend.dto.response.DoctorResponse;
 import com.serhiimanyk.backend.entity.Doctor;
@@ -70,12 +71,12 @@ public class DoctorMapperTest {
     @Test
     public void toDoctor_shouldMapDoctorRequestToDoctor(){
 
-        DoctorRequest doctorRequest = new DoctorRequest();
+        DoctorCreateRequest doctorRequest = new DoctorCreateRequest();
         doctorRequest.setFirstName("John");
         doctorRequest.setLastName("Doe");
-        doctorRequest.setPassword("12345");
         doctorRequest.setEmail("doctor@test.mail");
         doctorRequest.setPhoneNumber("1234567890");
+        doctorRequest.setPassword("12345");
         doctorRequest.setSpecialization(Specialization.DERMATOLOGIST);
 
         Doctor resultDoctor = doctorMapper.toDoctor(doctorRequest);
@@ -83,7 +84,6 @@ public class DoctorMapperTest {
         assertEquals(doctorRequest.getFirstName(), resultDoctor.getFirstName());
         assertEquals(doctorRequest.getLastName(), resultDoctor.getLastName());
         assertEquals(doctorRequest.getSpecialization(), resultDoctor.getSpecialization());
-        assertEquals(doctorRequest.getPassword(), resultDoctor.getPassword());
         assertEquals(doctorRequest.getEmail(), resultDoctor.getEmail());
         assertEquals(doctorRequest.getPhoneNumber(), resultDoctor.getPhoneNumber());
     }
@@ -91,7 +91,7 @@ public class DoctorMapperTest {
     @Test
     public void updateDoctorFromRequest_shouldUpdateDoctorFields(){
 
-        DoctorRequest doctorRequest = new DoctorRequest();
+        DoctorCreateRequest doctorRequest = new DoctorCreateRequest();
         doctorRequest.setFirstName("John");
         doctorRequest.setLastName("Doe");
         doctorRequest.setPassword("12345");

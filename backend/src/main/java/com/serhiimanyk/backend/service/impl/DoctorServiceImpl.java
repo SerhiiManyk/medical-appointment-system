@@ -2,7 +2,6 @@ package com.serhiimanyk.backend.service.impl;
 
 import com.serhiimanyk.backend.dto.request.DoctorRequest;
 import com.serhiimanyk.backend.entity.Doctor;
-import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.enums.Role;
 import com.serhiimanyk.backend.enums.Specialization;
 import com.serhiimanyk.backend.exception.DoctorNotFoundException;

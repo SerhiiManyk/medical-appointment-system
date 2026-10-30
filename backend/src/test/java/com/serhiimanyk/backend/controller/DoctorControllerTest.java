@@ -1,5 +1,6 @@
 package com.serhiimanyk.backend.controller;
 
+import com.serhiimanyk.backend.dto.request.DoctorCreateRequest;
 import com.serhiimanyk.backend.dto.request.DoctorRequest;
 import com.serhiimanyk.backend.dto.response.DoctorResponse;
 import com.serhiimanyk.backend.entity.Doctor;
@@ -65,7 +66,7 @@ public class DoctorControllerTest {
                 doctor.getLastName(),
                 doctor.getSpecialization());
 
-        when(doctorMapper.toDoctor(any(DoctorRequest.class))).thenReturn(doctor);
+        when(doctorMapper.toDoctor(any(DoctorCreateRequest.class))).thenReturn(doctor);
         when(doctorMapper.toDoctorResponse(doctor)).thenReturn(doctorResponse);
         when(doctorService.createDoctor(doctor)).thenReturn(doctor);
 
@@ -89,7 +90,7 @@ public class DoctorControllerTest {
                 .andExpect(jsonPath("$.specialization").value("DENTIST"))
                 .andExpect(jsonPath("$.id").value(1));
 
-        verify(doctorMapper, times(1)).toDoctor(any(DoctorRequest.class));
+        verify(doctorMapper, times(1)).toDoctor(any(DoctorCreateRequest.class));
         verify(doctorService, times(1)).createDoctor(doctor);
         verify(doctorMapper, times(1)).toDoctorResponse(doctor);
     }
@@ -260,7 +261,7 @@ public class DoctorControllerTest {
     @Test
     public void createDoctor_shouldReturn409WhenEmailAlreadyExists() throws Exception {
 
-        when(doctorMapper.toDoctor(any(DoctorRequest.class))).thenReturn(doctor);
+        when(doctorMapper.toDoctor(any(DoctorCreateRequest.class))).thenReturn(doctor);
         when(doctorService.createDoctor(doctor)).thenThrow(new EmailAlreadyExistsException(
                 "Doctor with email " + doctor.getEmail() + " already exists"
         ));
@@ -282,7 +283,7 @@ public class DoctorControllerTest {
                 .andExpect(jsonPath("$.message").value("Doctor with email " + doctor.getEmail() + " already exists"));
 
         verify(doctorService, times(1)).createDoctor(doctor);
-        verify(doctorMapper, times(1)).toDoctor(any(DoctorRequest.class));
+        verify(doctorMapper, times(1)).toDoctor(any(DoctorCreateRequest.class));
     }
 
     @Test

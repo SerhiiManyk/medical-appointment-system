@@ -1,5 +1,6 @@
 package com.serhiimanyk.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.serhiimanyk.backend.enums.Role;
 import com.serhiimanyk.backend.enums.Specialization;
 import jakarta.persistence.*;
@@ -41,6 +42,7 @@ public class Doctor {
     @NotBlank(message = "{NotEmpty.doctor.password}")
     @Size(min = 6, max = 100, message = "{Size.doctor.password}")
     @Column(name = "DOCTOR_PASSWORD", length = 100, nullable = false)
+    @JsonIgnore
     private String password;
 
     @Pattern(
