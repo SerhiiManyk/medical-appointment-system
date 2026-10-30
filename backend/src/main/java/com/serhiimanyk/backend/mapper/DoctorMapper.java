@@ -1,5 +1,6 @@
 package com.serhiimanyk.backend.mapper;
 
+import com.serhiimanyk.backend.dto.request.DoctorCreateRequest;
 import com.serhiimanyk.backend.dto.request.DoctorRequest;
 import com.serhiimanyk.backend.dto.response.DoctorResponse;
 import com.serhiimanyk.backend.entity.Doctor;
@@ -28,7 +29,7 @@ public class DoctorMapper {
                 .toList();
     }
 
-    public Doctor toDoctor(DoctorRequest doctorRequest) {
+    public Doctor toDoctor(DoctorCreateRequest doctorRequest) {
         Doctor doctor = new Doctor();
         doctor.setFirstName(doctorRequest.getFirstName());
         doctor.setLastName(doctorRequest.getLastName());

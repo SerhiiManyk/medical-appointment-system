@@ -1,5 +1,6 @@
 package com.serhiimanyk.backend.controller;
 
+import com.serhiimanyk.backend.dto.request.DoctorCreateRequest;
 import com.serhiimanyk.backend.dto.request.DoctorRequest;
 import com.serhiimanyk.backend.dto.response.DoctorResponse;
 import com.serhiimanyk.backend.entity.Doctor;
@@ -23,9 +24,9 @@ public class DoctorController {
     private final DoctorMapper doctorMapper;
 
     @PostMapping
-    public ResponseEntity<DoctorResponse> createDoctor(@Valid @RequestBody DoctorRequest doctorRequest) {
+    public ResponseEntity<DoctorResponse> createDoctor(@Valid @RequestBody DoctorCreateRequest doctorCreateRequest) {
 
-        Doctor doctor = doctorMapper.toDoctor(doctorRequest);
+        Doctor doctor = doctorMapper.toDoctor(doctorCreateRequest);
 
         Doctor resultDoctor = doctorService.createDoctor(doctor);
 
