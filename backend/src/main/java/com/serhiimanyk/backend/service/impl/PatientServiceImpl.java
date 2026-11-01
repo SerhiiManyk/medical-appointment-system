@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -46,13 +45,14 @@ public class PatientServiceImpl implements PatientService {
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 
+        Patient resultPatient = patientRepository.findById(id)
+                .orElseThrow(() -> new PatientNotFoundException("Patient with id " + id + " is not found"));
+
         if (authorities.contains(new SimpleGrantedAuthority("ROLE_DOCTOR"))) {
-            return patientRepository.findById(id)
-                    .orElseThrow(() -> new PatientNotFoundException("Patient with id " + id + " is not found"));
+            return resultPatient;
         }
         if (isCurrentPatient(id)) {
-            return patientRepository.findById(id)
-                    .orElseThrow(() -> new PatientNotFoundException("Patient with id " + id + " is not found"));
+            return resultPatient;
         }
         throw new AccessDeniedException("Access Denied");
     }
@@ -100,7 +100,7 @@ public class PatientServiceImpl implements PatientService {
             }
         }
 
-        if (request.getPassword() != null && isCurrentPatient(id)) {
+        if (request.getPassword() != null) {
             patientToUpdate.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
@@ -112,10 +112,10 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public void deletePatientById(Long id) {
 
-        java.util.Collection<?> roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+        Collection<?> roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
 
         if (!roles.contains(new SimpleGrantedAuthority("ROLE_PATIENT"))) {
-            throw new AccessDeniedException("Only patients can delete his/her patient data");
+            throw new AccessDeniedException("Only patients can delete their own profiles");
         }
 
         Patient patient = getPatientById(id);
