@@ -34,24 +34,26 @@ public class TimeslotServiceImpl implements TimeSlotService {
 
         LocalDate nowDate = LocalDate.now();
 
+        if (!getAuthenticatedDoctor().getId().equals(doctorId)) {
+            throw new AccessDeniedException("You are not allowed to access this doctor information.");
+        }
+
         if (!timeSlot.getEndTime().isAfter(timeSlot.getStartTime())) {
             throw new InvalidTimeSlotException("Time slot end time is before time slot start time.");
         }
         if (timeSlot.getDate().isBefore(nowDate)) {
             throw new InvalidTimeSlotException("Time slot date is before time slot start date.");
         }
-
-
-        if (!getAuthenticatedDoctor().getId().equals(doctorId)) {
-            throw new AccessDeniedException("You are not allowed to access this doctor information.");
+        if(timeSlotRepository.existsOverlappingTimeSlot(
+                doctorId,
+                timeSlot.getDate(),
+                timeSlot.getStartTime(),
+                timeSlot.getEndTime())){
+            throw new InvalidTimeSlotException("Time slot is already overlapping time.");
         }
 
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new DoctorNotFoundException("Doctor not found."));
-
-        if (timeSlotRepository.existsByDoctorIdAndDateAndStartTimeAndEndTime(doctorId, timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime())) {
-            throw new InvalidTimeSlotException("Time slot already exists.");
-        }
 
         timeSlot.setDoctor(doctor);
         timeSlot.setStatus(TimeSlotStatus.FREE);
