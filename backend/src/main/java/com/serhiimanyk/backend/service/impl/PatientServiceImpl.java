@@ -138,5 +138,4 @@ public class PatientServiceImpl implements PatientService {
 
         return authenticatedPatient.getId().equals(patientId);
     }
-
 }

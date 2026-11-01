@@ -44,11 +44,11 @@ public class TimeslotServiceImpl implements TimeSlotService {
         if (timeSlot.getDate().isBefore(nowDate)) {
             throw new InvalidTimeSlotException("Time slot date is before time slot start date.");
         }
-        if(timeSlotRepository.existsOverlappingTimeSlot(
+        if (timeSlotRepository.existsOverlappingTimeSlot(
                 doctorId,
                 timeSlot.getDate(),
                 timeSlot.getStartTime(),
-                timeSlot.getEndTime())){
+                timeSlot.getEndTime())) {
             throw new InvalidTimeSlotException("Time slot is already overlapping time.");
         }
 
@@ -119,8 +119,12 @@ public class TimeslotServiceImpl implements TimeSlotService {
 
         Doctor autenticatedDoctor = getAuthenticatedDoctor();
 
-        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId).orElseThrow(() -> new TimeSlotNotFoundException("Timeslot not found."));
+        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId).orElseThrow(
+                () -> new TimeSlotNotFoundException("Timeslot not found."));
 
+        if (!doctorId.equals(timeSlot.getDoctor().getId())) {
+            throw new TimeSlotDoesNotBelongToDoctorException("Timeslot doesn't belong to Doctor.");
+        }
         if (!timeSlot.getDoctor().getId().equals(autenticatedDoctor.getId())) {
             throw new TimeSlotDoesNotBelongToDoctorException("Timeslot with id " + timeSlotId + " does not belong to doctor with id " + doctorId);
         }
@@ -142,6 +146,9 @@ public class TimeslotServiceImpl implements TimeSlotService {
 
         TimeSlot timeSlot = timeSlotRepository.findById(id).orElseThrow(() -> new TimeSlotNotFoundException("TimeSlot with id " + id + " is not found."));
 
+        if (!doctorId.equals(timeSlot.getDoctor().getId())) {
+            throw new TimeSlotDoesNotBelongToDoctorException("Timeslot doesn't belong to Doctor.");
+        }
         if (!timeSlot.getDoctor().getId().equals(autenticatedDoctor.getId())) {
             throw new TimeSlotDoesNotBelongToDoctorException("Timeslot with id " + id + " does not belong to doctor with id " + doctorId);
         }
