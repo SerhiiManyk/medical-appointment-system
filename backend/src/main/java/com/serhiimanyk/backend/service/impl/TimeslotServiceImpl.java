@@ -9,8 +9,10 @@ import com.serhiimanyk.backend.exception.TimeSlotDoesNotBelongToDoctorException;
 import com.serhiimanyk.backend.exception.TimeSlotNotFoundException;
 import com.serhiimanyk.backend.repository.DoctorRepository;
 import com.serhiimanyk.backend.repository.TimeSlotRepository;
+import com.serhiimanyk.backend.service.DoctorService;
 import com.serhiimanyk.backend.service.TimeSlotService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,11 +34,16 @@ public class TimeslotServiceImpl implements TimeSlotService {
 
         LocalDate nowDate = LocalDate.now();
 
-        if (timeSlot.getEndTime().isBefore(timeSlot.getStartTime())) {
+        if (!timeSlot.getEndTime().isAfter(timeSlot.getStartTime())) {
             throw new InvalidTimeSlotException("Time slot end time is before time slot start time.");
         }
         if (timeSlot.getDate().isBefore(nowDate)) {
             throw new InvalidTimeSlotException("Time slot date is before time slot start date.");
+        }
+
+
+        if (!getAuthenticatedDoctor().getId().equals(doctorId)) {
+            throw new AccessDeniedException("You are not allowed to access this doctor information.");
         }
 
         Doctor doctor = doctorRepository.findById(doctorId)
@@ -55,7 +62,16 @@ public class TimeslotServiceImpl implements TimeSlotService {
     @Override
     public TimeSlot getTimeSlotById(Long doctorId, Long id) {
 
-        return timeSlotRepository.findById(id).orElseThrow(() -> new TimeSlotNotFoundException("Timeslot not found."));
+        if (!getAuthenticatedDoctor().getId().equals(doctorId)) {
+            throw new AccessDeniedException("You are not allowed to access this doctor information.");
+        }
+        TimeSlot resultTimeSlot = timeSlotRepository.findById(id)
+                .orElseThrow(() -> new TimeSlotNotFoundException("Timeslot not found."));
+
+        if (resultTimeSlot.getDoctor().getId().equals(doctorId)) {
+            return resultTimeSlot;
+        }
+        throw new TimeSlotDoesNotBelongToDoctorException("Timeslot doesn't belong to Doctor.");
     }
 
     @Override
@@ -63,7 +79,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
 
         Doctor curentDoctor = getAuthenticatedDoctor();
 
-        if(!curentDoctor.getId().equals(doctorId)) {
+        if (!curentDoctor.getId().equals(doctorId)) {
             throw new TimeSlotDoesNotBelongToDoctorException("Time slots doesn't belong to Doctor.");
         }
 
@@ -93,7 +109,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
         if (date.isBefore(LocalDate.now())) {
             throw new InvalidTimeSlotException("Date cannot be in the past.");
         }
-        return timeSlotRepository.findAllByDoctorIdAndDateAndStatus(doctorId,  date, TimeSlotStatus.FREE);
+        return timeSlotRepository.findAllByDoctorIdAndDateAndStatus(doctorId, date, TimeSlotStatus.FREE);
     }
 
     @Override
@@ -103,7 +119,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
 
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId).orElseThrow(() -> new TimeSlotNotFoundException("Timeslot not found."));
 
-        if(!timeSlot.getDoctor().getId().equals(autenticatedDoctor.getId())) {
+        if (!timeSlot.getDoctor().getId().equals(autenticatedDoctor.getId())) {
             throw new TimeSlotDoesNotBelongToDoctorException("Timeslot with id " + timeSlotId + " does not belong to doctor with id " + doctorId);
         }
         if (timeSlot.getStatus() == TimeSlotStatus.BLOCKED) {
@@ -124,7 +140,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
 
         TimeSlot timeSlot = timeSlotRepository.findById(id).orElseThrow(() -> new TimeSlotNotFoundException("TimeSlot with id " + id + " is not found."));
 
-        if(!timeSlot.getDoctor().getId().equals(autenticatedDoctor.getId())) {
+        if (!timeSlot.getDoctor().getId().equals(autenticatedDoctor.getId())) {
             throw new TimeSlotDoesNotBelongToDoctorException("Timeslot with id " + id + " does not belong to doctor with id " + doctorId);
         }
 
@@ -134,7 +150,7 @@ public class TimeslotServiceImpl implements TimeSlotService {
         timeSlotRepository.delete(timeSlot);
     }
 
-    private Doctor getAuthenticatedDoctor(){
+    private Doctor getAuthenticatedDoctor() {
 
         String emailName = SecurityContextHolder.getContext().getAuthentication().getName();
 

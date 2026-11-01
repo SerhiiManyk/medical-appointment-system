@@ -1,6 +1,5 @@
 package com.serhiimanyk.backend.config;
 
-import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.security.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +17,6 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
-    private final PatientRepository patientRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, DaoAuthenticationProvider authenticationProvider) throws Exception {
@@ -37,7 +35,7 @@ public class SecurityConfig {
 
                 .requestMatchers(HttpMethod.GET,
                         "/api/doctors/*/timeslots/available",
-                        "/api/doctors/*/timeslots/available/by-date"
+                        "/api/doctors/*/timeslots/available/**"
                 ).hasAnyRole("DOCTOR", "PATIENT")
 
                 .requestMatchers(HttpMethod.GET, "/api/doctors/*/timeslots/**").hasRole("DOCTOR")
