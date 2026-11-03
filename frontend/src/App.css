@@ -62,3 +62,31 @@ nav a:hover {
 .language-switcher button:hover {
   transform: scale(1.2);
 }
+
+.hero {
+  text-align: center;
+  padding: 30px 20px;
+  min-height: 150px;
+  background-color: #5ba80f;
+}
+
+.hero button {
+  padding: 12px 28px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #9f5909;
+  color: white;
+  transition: background-color 0.2s ease;
+  margin-top: 20px;
+}
+
+.hero button:hover {
+  transform: scale(1.1);
+  color: #050000;
+}
+
+.hero p {
+  color: #000000;
+}

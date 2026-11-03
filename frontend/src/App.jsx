@@ -11,6 +11,9 @@ function App() {
       doctors: "Doctors",
       appointments: "Appointments",
       login: "Login",
+      welcome: "Welcome to our medical platform",
+      description: "Book your appointment with a doctor quickly and easily.",
+      bookAppointment: "Book an appointment",
     },
     pl: {
       title: "System Rezerwacji Wizyt Lekarskich",
@@ -18,6 +21,9 @@ function App() {
       doctors: "Lekarze",
       appointments: "Wizyty",
       login: "Zaloguj się",
+      welcome: "Witamy na naszej platformie medycznej",
+      description: "Umów wizytę u lekarza szybko i łatwo.",
+      bookAppointment: "Umów wizytę",
     },
     uk: {
       title: "Система запису до лікаря",
@@ -25,6 +31,9 @@ function App() {
       doctors: "Лікарі",
       appointments: "Записи",
       login: "Увійти",
+      welcome: "Ласкаво просимо до нашої медичної платформи",
+      description: "Запишіться на прийом до лікаря швидко та легко.",
+      bookAppointment: "Записатися на прийом",
     },
   };
 
@@ -49,6 +58,14 @@ function App() {
           <button onClick={() => setLanguage("uk")}>🇺🇦</button>
         </div>
       </header>
+
+      <main>
+        <section className="hero">
+          <h2>{translations[language].welcome}</h2>
+          <p>{translations[language].description}</p>
+          <button>{translations[language].bookAppointment}</button>
+        </section>
+      </main>
     </>
   );
 }
