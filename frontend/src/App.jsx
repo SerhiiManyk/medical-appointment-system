@@ -32,6 +32,7 @@ function App() {
     <>
       <header>
         <div className="logo">
+          <img src="/images/ikon-header.jpg" alt="Medical logo" />
           <h1>{translations[language].title}</h1>
         </div>
 
@@ -43,9 +44,9 @@ function App() {
         </nav>
 
         <div className="language-switcher">
-          <button onClick={() => setLanguage("en")}>EN</button>
-          <button onClick={() => setLanguage("pl")}>PL</button>
-          <button onClick={() => setLanguage("uk")}>UA</button>
+          <button onClick={() => setLanguage("en")}>🇬🇧</button>
+          <button onClick={() => setLanguage("pl")}>🇵🇱</button>
+          <button onClick={() => setLanguage("uk")}>🇺🇦</button>
         </div>
       </header>
     </>
