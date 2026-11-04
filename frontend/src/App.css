@@ -1,0 +1,92 @@
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-image: url("/images/header-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 10px 20px;
+  gap: 30px;
+}
+
+nav {
+  display: flex;
+  gap: 15px;
+}
+
+.language-switcher {
+  display: flex;
+  gap: 4px;
+}
+
+nav a {
+  text-decoration: none;
+  color: #000000;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+nav a:hover {
+  transform: scale(1.15);
+  color: #f8f4f4;
+}
+
+.logo h1 {
+  line-height: 1;
+}
+
+.logo img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.language-switcher button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 28px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.language-switcher button:hover {
+  transform: scale(1.2);
+}
+
+.hero {
+  text-align: center;
+  padding: 30px 20px;
+  min-height: 150px;
+  background-color: #5ba80f;
+}
+
+.hero button {
+  padding: 12px 28px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #9f5909;
+  color: white;
+  transition: background-color 0.2s ease;
+  margin-top: 20px;
+}
+
+.hero button:hover {
+  transform: scale(1.1);
+  color: #050000;
+}
+
+.hero p {
+  color: #000000;
+}
