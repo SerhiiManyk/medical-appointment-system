@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./App.css";
+import DoctorsSection from "./components/DoctorsSection";
 
 function App() {
   const [language, setLanguage] = useState("en");
@@ -14,6 +15,7 @@ function App() {
       welcome: "Welcome to our medical platform",
       description: "Book your appointment with a doctor quickly and easily.",
       bookAppointment: "Book an appointment",
+      doctorsTitle: "Our Doctors",
     },
     pl: {
       title: "System Rezerwacji Wizyt Lekarskich",
@@ -24,6 +26,7 @@ function App() {
       welcome: "Witamy na naszej platformie medycznej",
       description: "Umów wizytę u lekarza szybko i łatwo.",
       bookAppointment: "Umów wizytę",
+      doctorsTitle: "Nasi lekarze",
     },
     uk: {
       title: "Система запису до лікаря",
@@ -34,6 +37,7 @@ function App() {
       welcome: "Ласкаво просимо до нашої медичної платформи",
       description: "Запишіться на прийом до лікаря швидко та легко.",
       bookAppointment: "Записатися на прийом",
+      doctorsTitle: "Наші лікарі",
     },
   };
 
@@ -65,6 +69,8 @@ function App() {
           <p>{translations[language].description}</p>
           <button>{translations[language].bookAppointment}</button>
         </section>
+
+        <DoctorsSection language={language} translations={translations} />
       </main>
     </>
   );
