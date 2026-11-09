@@ -90,3 +90,42 @@ nav a:hover {
 .hero p {
   color: #000000;
 }
+
+.specializations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.specializations-grid img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  display: block;
+  border-radius: 12px;
+}
+
+.specializations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+
+  background-image: url("/images/specializations_bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.specializations-title {
+  background-color: #9f5909;
+  color: white;
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.specializations-grid article h4 {
+  color: black;
+}

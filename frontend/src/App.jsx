@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-import DoctorsSection from "./components/DoctorsSection";
+import SpecializationSection from "./components/SpecializationSection";
 
 function App() {
   const [language, setLanguage] = useState("en");
@@ -16,6 +16,7 @@ function App() {
       description: "Book your appointment with a doctor quickly and easily.",
       bookAppointment: "Book an appointment",
       doctorsTitle: "Our Doctors",
+      specializationsTitle: "Our Specializations",
     },
     pl: {
       title: "System Rezerwacji Wizyt Lekarskich",
@@ -27,6 +28,7 @@ function App() {
       description: "Umów wizytę u lekarza szybko i łatwo.",
       bookAppointment: "Umów wizytę",
       doctorsTitle: "Nasi lekarze",
+      specializationsTitle: "Nasze specjalizacje",
     },
     uk: {
       title: "Система запису до лікаря",
@@ -38,6 +40,7 @@ function App() {
       description: "Запишіться на прийом до лікаря швидко та легко.",
       bookAppointment: "Записатися на прийом",
       doctorsTitle: "Наші лікарі",
+      specializationsTitle: "Наші спеціалізації",
     },
   };
 
@@ -70,7 +73,10 @@ function App() {
           <button>{translations[language].bookAppointment}</button>
         </section>
 
-        <DoctorsSection language={language} translations={translations} />
+        <SpecializationSection
+          language={language}
+          translations={translations}
+        />
       </main>
     </>
   );
