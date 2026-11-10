@@ -1,9 +1,11 @@
 import { useState } from "react";
 import "./App.css";
 import SpecializationSection from "./components/SpecializationSection";
+import Login from "./components/Login";
 
 function App() {
   const [language, setLanguage] = useState("en");
+  const [showLogin, setShowLogin] = useState(false);
 
   const translations = {
     en: {
@@ -53,10 +55,14 @@ function App() {
         </div>
 
         <nav>
-          <a href="#home">{translations[language].home}</a>
+          <button onClick={() => setShowLogin(false)}>
+            {translations[language].home}
+          </button>
           <a href="#doctors">{translations[language].doctors}</a>
           <a href="#appointments">{translations[language].appointments}</a>
-          <a href="#login">{translations[language].login}</a>
+          <button onClick={() => setShowLogin(true)}>
+            {translations[language].login}
+          </button>
         </nav>
 
         <div className="language-switcher">
@@ -67,16 +73,22 @@ function App() {
       </header>
 
       <main>
-        <section className="hero">
-          <h2>{translations[language].welcome}</h2>
-          <p>{translations[language].description}</p>
-          <button>{translations[language].bookAppointment}</button>
-        </section>
+        {showLogin ? (
+          <Login />
+        ) : (
+          <>
+            <section className="hero">
+              <h2>{translations[language].welcome}</h2>
+              <p>{translations[language].description}</p>
+              <button>{translations[language].bookAppointment}</button>
+            </section>
 
-        <SpecializationSection
-          language={language}
-          translations={translations}
-        />
+            <SpecializationSection
+              language={language}
+              translations={translations}
+            />
+          </>
+        )}
       </main>
     </>
   );
