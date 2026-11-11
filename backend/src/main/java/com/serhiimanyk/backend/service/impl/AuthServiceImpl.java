@@ -17,9 +17,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 
 @Service
 @Transactional
@@ -33,6 +35,10 @@ public class AuthServiceImpl {
     private final AuthenticationManager authenticationManager;
 
     private final HttpSessionSecurityContextRepository httpSessionSecurityContextRepository;
+
+    private final SessionAuthenticationStrategy sessionAuthenticationStrategy;
+
+    private final CsrfTokenRepository csrfTokenRepository;
 
     public String getCurrentUserEmail() {
 
@@ -82,7 +88,11 @@ public class AuthServiceImpl {
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
 
-        Authentication authentication =  authenticationManager.authenticate(token);
+        Authentication authentication = authenticationManager.authenticate(token);
+
+        sessionAuthenticationStrategy.onAuthentication(
+                authentication, request, response
+        );
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();
 
@@ -90,7 +100,9 @@ public class AuthServiceImpl {
 
         SecurityContextHolder.setContext(context);
 
-        httpSessionSecurityContextRepository.saveContext(context,request,response);
+        httpSessionSecurityContextRepository.saveContext(context, request, response);
+
+        csrfTokenRepository.saveToken(null, request, response);
 
         return getCurrentUser();
     }
