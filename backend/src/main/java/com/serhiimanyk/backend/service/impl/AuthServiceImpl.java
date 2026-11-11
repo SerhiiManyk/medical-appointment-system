@@ -1,16 +1,23 @@
 package com.serhiimanyk.backend.service.impl;
 
+import com.serhiimanyk.backend.dto.request.LoginRequest;
 import com.serhiimanyk.backend.dto.response.AuthResponse;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.service.DoctorService;
 import com.serhiimanyk.backend.service.PatientService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +29,10 @@ public class AuthServiceImpl {
     private final DoctorService doctorService;
 
     private final PatientService patientService;
+
+    private final AuthenticationManager authenticationManager;
+
+    private final HttpSessionSecurityContextRepository httpSessionSecurityContextRepository;
 
     public String getCurrentUserEmail() {
 
@@ -65,5 +76,22 @@ public class AuthServiceImpl {
                 throw new UsernameNotFoundException("User not found with email: " + email);
             }
         }
+    }
+
+    public AuthResponse login(LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
+
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
+
+        Authentication authentication =  authenticationManager.authenticate(token);
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+
+        context.setAuthentication(authentication);
+
+        SecurityContextHolder.setContext(context);
+
+        httpSessionSecurityContextRepository.saveContext(context,request,response);
+
+        return getCurrentUser();
     }
 }
