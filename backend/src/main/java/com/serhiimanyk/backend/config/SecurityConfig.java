@@ -18,6 +18,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
+import org.springframework.util.StringUtils;
+import java.util.function.Supplier;
 
 @Configuration
 @RequiredArgsConstructor
@@ -50,7 +56,9 @@ public class SecurityConfig {
             DaoAuthenticationProvider authenticationProvider,
             HttpSessionSecurityContextRepository repository) throws Exception {
 
-        http.csrf(AbstractHttpConfigurer::disable);
+        http.csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+        );
         http.cors(Customizer.withDefaults());
         http.securityContext(securityContext ->
                 securityContext.securityContextRepository(repository)
@@ -107,6 +115,9 @@ public class SecurityConfig {
                 .hasRole("DOCTOR")
 
                 .requestMatchers("/error").permitAll()
+
+                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/auth/csrf").permitAll()
 
                 .anyRequest().authenticated());
         http.authenticationProvider(authenticationProvider);

@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.web.csrf.CsrfToken;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -27,5 +28,10 @@ public class AuthController {
             HttpServletRequest request,
             HttpServletResponse response) {
         return ResponseEntity.ok(authService.login(loginRequest,request,response));
+    }
+
+    @GetMapping("/csrf")
+    public ResponseEntity<CsrfToken> getCsrfToken(CsrfToken csrfToken) {
+        return ResponseEntity.ok(csrfToken);
     }
 }
