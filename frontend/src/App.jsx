@@ -6,6 +6,7 @@ import Login from "./components/Login";
 function App() {
   const [language, setLanguage] = useState("en");
   const [showLogin, setShowLogin] = useState(false);
+  const [user, setUser] = useState(null);
 
   const translations = {
     en: {
@@ -46,6 +47,11 @@ function App() {
     },
   };
 
+  function handleLoginSuccess(authResponse) {
+    setUser(authResponse);
+    setShowLogin(false);
+  }
+
   return (
     <>
       <header>
@@ -74,7 +80,7 @@ function App() {
 
       <main>
         {showLogin ? (
-          <Login />
+          <Login onLogin={handleLoginSuccess} />
         ) : (
           <>
             <section className="hero">

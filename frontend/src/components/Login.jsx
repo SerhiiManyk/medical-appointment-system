@@ -1,7 +1,7 @@
 import "./Login.css";
 import { useState } from "react";
 
-function Login() {
+function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -20,6 +20,32 @@ function Login() {
       .split("; ")
       .find((cookie) => cookie.startsWith("XSRF-TOKEN="))
       .split("=")[1];
+
+    const loginRequest = {
+      email: email,
+      password: password,
+    };
+
+    const body = JSON.stringify(loginRequest);
+
+    const loginResponse = await fetch("http://localhost:8080/api/auth/login", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-XSRF-TOKEN": xsrfToken,
+      },
+      body: body,
+    });
+
+    if (!loginResponse.ok) {
+      console.error("ERROR RESPONSE");
+      return;
+
+      onLogin(authResponse);
+    }
+
+    const authResponse = await loginResponse.json();
   }
 
   return (
