@@ -4,15 +4,13 @@ import com.serhiimanyk.backend.dto.request.LoginRequest;
 import com.serhiimanyk.backend.dto.response.AuthResponse;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.Patient;
+import com.serhiimanyk.backend.exception.InvalidCredentialsException;
 import com.serhiimanyk.backend.service.DoctorService;
 import com.serhiimanyk.backend.service.PatientService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -88,7 +86,10 @@ public class AuthServiceImpl {
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
 
-        Authentication authentication = authenticationManager.authenticate(token);
+        Authentication authentication;
+        try {
+             authentication = authenticationManager.authenticate(token);
+        } catch (BadCredentialsException e) {throw new InvalidCredentialsException("Invalid email or password");}
 
         sessionAuthenticationStrategy.onAuthentication(
                 authentication, request, response

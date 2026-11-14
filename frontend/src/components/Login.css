@@ -69,6 +69,13 @@
   font-size: 16px;
 }
 
+.error-message {
+  color: #dc3545;
+  font-size: 14px;
+  margin: 10px 0;
+  text-align: center;
+}
+
 @media (max-width: 600px) {
   .login-container {
     flex-direction: column;

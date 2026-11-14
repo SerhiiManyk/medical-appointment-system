@@ -114,4 +114,12 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException exception,HttpServletRequest request){
+
+        ErrorResponse response = buildErrorResponse(HttpStatus.UNAUTHORIZED, exception.getMessage(), request);
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
 }
