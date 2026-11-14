@@ -1,0 +1,28 @@
+package com.serhiimanyk.backend.service;
+
+import com.serhiimanyk.backend.dto.request.AppointmentCreateRequest;
+import com.serhiimanyk.backend.entity.Appointment;
+
+import java.util.List;
+
+public interface AppointmentService {
+
+    Appointment createAppointment(AppointmentCreateRequest request);
+
+    List<Appointment> getAppointmentsByPatientId(Long id);
+
+    List<Appointment> getAppointmentsByDoctorId(Long id);
+
+    void deleteAppointmentById(Long id);
+
+    Appointment cancelAppointment(Long id);
+
+    Appointment completeAppointment(Long id);
+
+    Appointment rescheduleAppointment(Long appointmentId, Long newTimeslotId);
+
+    Appointment getAppointmentByIdForPatient(Long id);
+
+    Appointment getAppointmentByIdForDoctor(Long id);
+
+}
