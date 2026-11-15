@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import SpecializationSection from "./components/SpecializationSection";
 import Login from "./components/Login";
@@ -7,6 +7,29 @@ function App() {
   const [language, setLanguage] = useState("en");
   const [showLogin, setShowLogin] = useState(false);
   const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const response = await fetch("http://localhost:8080/api/auth/me", {
+          method: "GET",
+          credentials: "include",
+        });
+        if (!response.ok) {
+          console.error("ERROR RESPONSE");
+          setUser(null);
+          return;
+        } else {
+          const authResponse = await response.json();
+          setUser(authResponse);
+        }
+      } catch (error) {
+        console.error(error);
+        setUser(null);
+      }
+    }
+    checkSession();
+  }, []);
 
   const translations = {
     en: {

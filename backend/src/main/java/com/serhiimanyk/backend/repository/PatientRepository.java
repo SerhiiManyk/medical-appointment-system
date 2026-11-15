@@ -1,6 +1,5 @@
 package com.serhiimanyk.backend.repository;
 
-import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.Patient;
 import org.springframework.data.jpa.repository.JpaRepository;
 

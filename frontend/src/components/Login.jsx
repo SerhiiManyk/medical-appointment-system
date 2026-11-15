@@ -58,10 +58,10 @@ function Login({ onLogin }) {
         return;
       }
 
-      const authResponse = await loginResponse.json();
-      onLogin(authResponse);
+      onLogin(responseBody);
     } catch (error) {
       console.error(error);
+      console.error("LOGIN FETCH ERROR:", error);
       setError("Unable to connect to the server. Please try again later.");
     } finally {
       setIsLoading(false);

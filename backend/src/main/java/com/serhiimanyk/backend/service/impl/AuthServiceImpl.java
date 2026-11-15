@@ -5,6 +5,8 @@ import com.serhiimanyk.backend.dto.response.AuthResponse;
 import com.serhiimanyk.backend.entity.Doctor;
 import com.serhiimanyk.backend.entity.Patient;
 import com.serhiimanyk.backend.exception.InvalidCredentialsException;
+import com.serhiimanyk.backend.repository.DoctorRepository;
+import com.serhiimanyk.backend.repository.PatientRepository;
 import com.serhiimanyk.backend.service.DoctorService;
 import com.serhiimanyk.backend.service.PatientService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,15 +23,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 
+import java.util.Optional;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class AuthServiceImpl {
 
-    private final DoctorService doctorService;
+    private final PatientRepository patientRepository;
 
-    private final PatientService patientService;
-
+    private final DoctorRepository doctorRepository;
+    
     private final AuthenticationManager authenticationManager;
 
     private final HttpSessionSecurityContextRepository httpSessionSecurityContextRepository;
@@ -57,24 +61,28 @@ public class AuthServiceImpl {
 
         String email = getCurrentUserEmail();
 
-        Doctor doctor = doctorService.getDoctorByEmail(email);
-        if (doctor != null) {
+        Optional<Doctor> doctor = doctorRepository.findByEmail(email);
+        if (doctor.isPresent()) {
+
+            Doctor doc = doctor.get();
             return new AuthResponse(
-                    doctor.getId(),
-                    doctor.getFirstName(),
-                    doctor.getLastName(),
-                    doctor.getEmail(),
-                    doctor.getRole()
+                    doc.getId(),
+                    doc.getFirstName(),
+                    doc.getLastName(),
+                    doc.getEmail(),
+                    doc.getRole()
             );
         } else {
-            Patient patient = patientService.getPatientByEmail(email);
-            if (patient != null) {
+           Optional <Patient> patient = patientRepository.findByEmail(email);
+            if (patient.isPresent()) {
+
+                Patient pat = patient.get();
                 return new AuthResponse(
-                        patient.getId(),
-                        patient.getFirstName(),
-                        patient.getLastName(),
-                        patient.getEmail(),
-                        patient.getRole()
+                        pat.getId(),
+                        pat.getFirstName(),
+                        pat.getLastName(),
+                        pat.getEmail(),
+                        pat.getRole()
                 );
             } else {
                 throw new UsernameNotFoundException("User not found with email: " + email);
@@ -88,8 +96,10 @@ public class AuthServiceImpl {
 
         Authentication authentication;
         try {
-             authentication = authenticationManager.authenticate(token);
-        } catch (BadCredentialsException e) {throw new InvalidCredentialsException("Invalid email or password");}
+            authentication = authenticationManager.authenticate(token);
+        } catch (BadCredentialsException e) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
 
         sessionAuthenticationStrategy.onAuthentication(
                 authentication, request, response
