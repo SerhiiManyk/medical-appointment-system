@@ -43,6 +43,7 @@ function App() {
       bookAppointment: "Book an appointment",
       doctorsTitle: "Our Doctors",
       specializationsTitle: "Our Specializations",
+      logout: "Logout",
     },
     pl: {
       title: "System Rezerwacji Wizyt Lekarskich",
@@ -55,6 +56,7 @@ function App() {
       bookAppointment: "Umów wizytę",
       doctorsTitle: "Nasi lekarze",
       specializationsTitle: "Nasze specjalizacje",
+      logout: "Wyloguj",
     },
     uk: {
       title: "Система запису до лікаря",
@@ -67,12 +69,41 @@ function App() {
       bookAppointment: "Записатися на прийом",
       doctorsTitle: "Наші лікарі",
       specializationsTitle: "Наші спеціалізації",
+      logout: "Вийти",
     },
   };
 
   function handleLoginSuccess(authResponse) {
     setUser(authResponse);
     setShowLogin(false);
+  }
+
+  async function handleLogout() {
+    try {
+      const cookies = document.cookie;
+      const xsrfCookie = cookies
+        .split("; ")
+        .find((cookie) => cookie.startsWith("XSRF-TOKEN="));
+      const xsrfToken = xsrfCookie?.split("=")[1];
+
+      const response = await fetch("http://localhost:8080/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "X-XSRF-TOKEN": xsrfToken,
+        },
+      });
+
+      if (!response.ok) {
+        console.error("Logout failed:", response.status);
+        return;
+      }
+
+      setUser(null);
+      setShowLogin(false);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   }
 
   return (
@@ -83,14 +114,23 @@ function App() {
           <h1>{translations[language].title}</h1>
         </div>
 
+        {user && (
+          <>
+            <div>{`${user.firstName} ${user.lastName}`}</div>
+            <div>{user.role}</div>
+          </>
+        )}
+
         <nav>
           <button onClick={() => setShowLogin(false)}>
             {translations[language].home}
           </button>
           <a href="#doctors">{translations[language].doctors}</a>
           <a href="#appointments">{translations[language].appointments}</a>
-          <button onClick={() => setShowLogin(true)}>
-            {translations[language].login}
+          <button onClick={() => (user ? handleLogout() : setShowLogin(true))}>
+            {user
+              ? translations[language].logout
+              : translations[language].login}
           </button>
         </nav>
 

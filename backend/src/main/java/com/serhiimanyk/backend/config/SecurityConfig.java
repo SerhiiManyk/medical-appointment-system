@@ -1,6 +1,7 @@
 package com.serhiimanyk.backend.config;
 
 import com.serhiimanyk.backend.security.CustomUserDetailsService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -121,6 +122,15 @@ public class SecurityConfig {
 
                 .anyRequest().authenticated());
         http.authenticationProvider(authenticationProvider);
+
+        http.logout(logout -> logout
+                .logoutUrl("/api/auth/logout")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .logoutSuccessHandler((request, response, authentication) ->
+                        response.setStatus(HttpServletResponse.SC_OK)
+                )
+        );
 
         return http.build();
     }
