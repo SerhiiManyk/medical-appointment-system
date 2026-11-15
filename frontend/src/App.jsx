@@ -116,8 +116,10 @@ function App() {
 
         {user && (
           <>
-            <div>{`${user.firstName} ${user.lastName}`}</div>
-            <div>{user.role}</div>
+            <div className="user-name">
+              {`${user.firstName} ${user.lastName}`}
+            </div>
+            <div className="user-role">{user.role}</div>
           </>
         )}
 

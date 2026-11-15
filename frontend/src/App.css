@@ -9,6 +9,7 @@ header {
   padding: 10px 20px;
   gap: 30px;
   flex-wrap: wrap;
+  color: white;
 }
 
 nav {
@@ -148,4 +149,26 @@ nav button:hover {
 
 .specializations-grid article h4 {
   color: black;
+}
+
+.user-name {
+  font-size: 22px;
+  font-weight: 600;
+  display: inline-block;
+  padding-bottom: 4px;
+  border-bottom: 1px solid black;
+  margin-top: 6px;
+}
+
+.user-role {
+  animation: roleColorChange 3s infinite alternate;
+}
+
+@keyframes roleColorChange {
+  from {
+    color: black;
+  }
+  to {
+    color: white;
+  }
 }
