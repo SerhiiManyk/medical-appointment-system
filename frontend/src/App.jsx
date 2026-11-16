@@ -2,11 +2,15 @@ import { useState, useEffect } from "react";
 import "./App.css";
 import SpecializationSection from "./components/SpecializationSection";
 import Login from "./components/Login";
+import Register from "./components/Register";
+import EditProfile from "./components/EditProfile";
 
 function App() {
   const [language, setLanguage] = useState("en");
   const [showLogin, setShowLogin] = useState(false);
   const [user, setUser] = useState(null);
+  const [showRegister, setShowRegister] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   useEffect(() => {
     async function checkSession() {
@@ -44,6 +48,8 @@ function App() {
       doctorsTitle: "Our Doctors",
       specializationsTitle: "Our Specializations",
       logout: "Logout",
+      register: "Register",
+      editProfile: "Edit Profile",
     },
     pl: {
       title: "System Rezerwacji Wizyt Lekarskich",
@@ -57,6 +63,8 @@ function App() {
       doctorsTitle: "Nasi lekarze",
       specializationsTitle: "Nasze specjalizacje",
       logout: "Wyloguj",
+      register: "Zarejestruj się",
+      editProfile: "Edytuj profil",
     },
     uk: {
       title: "Система запису до лікаря",
@@ -70,6 +78,8 @@ function App() {
       doctorsTitle: "Наші лікарі",
       specializationsTitle: "Наші спеціалізації",
       logout: "Вийти",
+      register: "Реєстрація",
+      editProfile: "Редагувати профіль",
     },
   };
 
@@ -101,9 +111,14 @@ function App() {
 
       setUser(null);
       setShowLogin(false);
+      setShowRegister(false);
     } catch (error) {
       console.error("Logout error:", error);
     }
+  }
+
+  function onBack() {
+    setShowEditProfile(false);
   }
 
   return (
@@ -124,12 +139,37 @@ function App() {
         )}
 
         <nav>
-          <button onClick={() => setShowLogin(false)}>
-            {translations[language].home}
+          <button
+            onClick={() => {
+              if (!user) {
+                setShowRegister(true);
+                setShowLogin(false);
+                setShowEditProfile(false);
+              } else if (user.role === "PATIENT") {
+                setShowEditProfile(true);
+                setShowRegister(false);
+                setShowLogin(false);
+              }
+            }}
+          >
+            {!user && translations[language].register}
+
+            {user &&
+              user.role === "PATIENT" &&
+              translations[language].editProfile}
           </button>
           <a href="#doctors">{translations[language].doctors}</a>
           <a href="#appointments">{translations[language].appointments}</a>
-          <button onClick={() => (user ? handleLogout() : setShowLogin(true))}>
+          <button
+            onClick={() => {
+              if (user) {
+                handleLogout();
+              } else {
+                setShowLogin(true);
+                setShowRegister(false);
+              }
+            }}
+          >
             {user
               ? translations[language].logout
               : translations[language].login}
@@ -146,6 +186,14 @@ function App() {
       <main>
         {showLogin ? (
           <Login onLogin={handleLoginSuccess} />
+        ) : showRegister ? (
+          <Register language={language} translations={translations} />
+        ) : showEditProfile ? (
+          <EditProfile
+            language={language}
+            translations={translations}
+            onBack={onBack}
+          />
         ) : (
           <>
             <section className="hero">
