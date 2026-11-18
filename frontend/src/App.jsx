@@ -19,7 +19,10 @@ function App() {
           method: "GET",
           credentials: "include",
         });
-        if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          setUser(null);
+          return;
+        } else if (!response.ok) {
           console.error("ERROR RESPONSE");
           setUser(null);
           return;
@@ -50,6 +53,9 @@ function App() {
       logout: "Logout",
       register: "Register",
       editProfile: "Edit Profile",
+      registrationDescription:
+        "Create your patient account in a few simple steps. Fill in your personal details and contact information, then choose a secure password. After registration, you will be able to book medical appointments.",
+      welcome: "Welcome to our Medical Appointment System",
     },
     pl: {
       title: "System Rezerwacji Wizyt Lekarskich",
@@ -65,6 +71,9 @@ function App() {
       logout: "Wyloguj",
       register: "Zarejestruj się",
       editProfile: "Edytuj profil",
+      registrationDescription:
+        "Utwórz konto pacjenta w kilku prostych krokach. Podaj swoje dane osobowe i kontaktowe, a następnie wybierz bezpieczne hasło. Po rejestracji będziesz mógł rezerwować wizyty lekarskie.",
+      welcome: "Witamy w naszym systemie rezerwacji wizyt lekarskich",
     },
     uk: {
       title: "Система запису до лікаря",
@@ -80,6 +89,9 @@ function App() {
       logout: "Вийти",
       register: "Реєстрація",
       editProfile: "Редагувати профіль",
+      registrationDescription:
+        "Створіть обліковий запис пацієнта за кілька простих кроків. Заповніть особисті та контактні дані, а потім придумайте надійний пароль. Після реєстрації ви зможете записуватися на прийом до лікаря.",
+      welcome: "Ласкаво просимо до системи медичних записів",
     },
   };
 
@@ -90,6 +102,15 @@ function App() {
 
   async function handleLogout() {
     try {
+      const csrfResponse = await fetch("http://localhost:8080/api/auth/csrf", {
+        credentials: "include",
+      });
+
+      if (!csrfResponse.ok) {
+        console.error("Unable to initialize CSRF");
+        return;
+      }
+
       const cookies = document.cookie;
       const xsrfCookie = cookies
         .split("; ")

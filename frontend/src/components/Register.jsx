@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./Register.css";
 
 function Register({ language, translations }) {
   const [firstName, setFirstName] = useState("");
@@ -64,85 +65,93 @@ function Register({ language, translations }) {
   }
 
   return (
-    <div>
-      <h1>{translations[language].register}</h1>
+    <div className="register-container">
+      <div className="register-description">
+        <h2>{translations[language].welcome}</h2>
+        <p>{translations[language].registrationDescription}</p>
+      </div>
+      <div className="register-card">
+        <div className="register-title">
+          <h1>{translations[language].register}</h1>
+        </div>
 
-      {error && <p className="error-message">{error}</p>}
+        {error && <p className="error-message">{error}</p>}
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="First name"
-          value={firstName}
-          onChange={(event) => {
-            setFirstName(event.target.value);
-            setError("");
-          }}
-        />
-        <input
-          type="text"
-          placeholder="Last name"
-          value={lastName}
-          onChange={(event) => {
-            setLastName(event.target.value);
-            setError("");
-          }}
-        />
-        <input
-          type="email"
-          id="email"
-          name="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(event) => {
-            setEmail(event.target.value);
-            setError("");
-          }}
-        />
-        <input
-          type="tel"
-          placeholder="Your phone number"
-          value={phone}
-          onChange={(event) => {
-            setPhone(event.target.value);
-            setError("");
-          }}
-        />
-        <select
-          value={gender}
-          onChange={(event) => {
-            setGender(event.target.value);
-            setError("");
-          }}
-        >
-          <option value="">Choose your gender</option>
-          <option value="MALE">Male</option>
-          <option value="FEMALE">Female</option>
-        </select>
-        <input
-          type="date"
-          placeholder="Date of Birth"
-          value={dateOfBirth}
-          onChange={(event) => {
-            setDateOfBirth(event.target.value);
-            setError("");
-          }}
-        />
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="Create password"
-          value={password}
-          onChange={(event) => {
-            setPassword(event.target.value);
-            setError("");
-          }}
-        />
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? "Registering..." : "Register"}
-        </button>
-      </form>
+        <form className="register-form" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="First name"
+            value={firstName}
+            onChange={(event) => {
+              setFirstName(event.target.value);
+              setError("");
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Last name"
+            value={lastName}
+            onChange={(event) => {
+              setLastName(event.target.value);
+              setError("");
+            }}
+          />
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setError("");
+            }}
+          />
+          <input
+            type="tel"
+            placeholder="Your phone number"
+            value={phone}
+            onChange={(event) => {
+              setPhone(event.target.value);
+              setError("");
+            }}
+          />
+          <select
+            value={gender}
+            onChange={(event) => {
+              setGender(event.target.value);
+              setError("");
+            }}
+          >
+            <option value="">Choose your gender</option>
+            <option value="MALE">Male</option>
+            <option value="FEMALE">Female</option>
+          </select>
+          <input
+            type="date"
+            placeholder="Date of Birth"
+            value={dateOfBirth}
+            onChange={(event) => {
+              setDateOfBirth(event.target.value);
+              setError("");
+            }}
+          />
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Create password"
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              setError("");
+            }}
+          />
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? "Registering..." : "Register"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
