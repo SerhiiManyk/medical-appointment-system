@@ -1,0 +1,26 @@
+package com.serhiimanyk.backend.service;
+
+import com.serhiimanyk.backend.dto.request.PatientUpdateRequest;
+import com.serhiimanyk.backend.entity.Patient;
+
+import java.util.List;
+
+public interface PatientService {
+
+    Patient getPatientByEmail(String email);
+
+    Patient getPatientById(Long id);
+
+    List<Patient> getAllPatients ();
+
+    Patient createPatient(Patient patient);
+
+    Patient updatePatient(PatientUpdateRequest request, Long id);
+
+    void deletePatientById(Long id);
+
+    boolean isCurrentPatient(Long patientId);
+
+    public Patient getPatientFromAuthentication();
+
+}

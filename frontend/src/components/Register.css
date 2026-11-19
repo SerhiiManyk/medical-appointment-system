@@ -1,0 +1,127 @@
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 40px 20px;
+  background-image: url("/images/reg_fon_back.jpg");
+}
+
+.register-card {
+  width: 100%;
+  max-width: 450px;
+  padding: 35px;
+  background-image: url("/images/registration_fon1.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.register-card h1 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #010300;
+  letter-spacing: 2px;
+  text-decoration: underline;
+  text-decoration-color: black;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+
+.register-form input,
+.register-form select {
+  background-color: #5ba80f;
+  background-size: cover;
+  background-position: center;
+  width: 60%;
+  box-sizing: border-box;
+  height: 35px;
+  padding: 8px 12px;
+  font-size: 15px;
+  border-radius: 100px;
+  color: black;
+}
+
+.register-form input::placeholder {
+  color: rgb(248, 246, 246);
+}
+
+.register-title {
+  background-color: #5ba80f;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 1px solid black;
+  margin-bottom: 25px;
+  text-align: center;
+  width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.register-title h1 {
+  margin: 0;
+  font-size: clamp(18px, 3vw, 28px);
+  overflow-wrap: break-word;
+}
+
+.register-form button {
+  width: 50%;
+  height: 44px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  background-color: #5ba80f;
+  color: black;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.register-form button:hover {
+  background-color: rgb(4, 85, 19);
+}
+
+.register-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.register-description {
+  color: black;
+  margin-bottom: 40px;
+}
+
+.register-description h2 {
+  color: rgb(3, 0, 0);
+  text-decoration: underline;
+  text-decoration-color: rgb(255, 255, 255);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+}
+
+.register-description p {
+  color: black;
+  text-decoration: underline;
+  text-decoration-color: rgb(255, 255, 255);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+}
