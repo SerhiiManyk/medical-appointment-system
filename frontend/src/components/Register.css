@@ -5,14 +5,14 @@
   flex-direction: column;
   align-items: center;
   padding: 20px 40px 20px;
-  background-color: #5ba80f;
+  background-image: url("/images/reg_fon_back.jpg");
 }
 
 .register-card {
   width: 100%;
   max-width: 450px;
   padding: 35px;
-  background-image: url("/images/registration_fon.jpg");
+  background-image: url("/images/registration_fon1.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -40,7 +40,7 @@
 
 .register-form input,
 .register-form select {
-  background-image: url("/images/header-bg.jpg");
+  background-color: #5ba80f;
   background-size: cover;
   background-position: center;
   width: 60%;
@@ -57,7 +57,7 @@
 }
 
 .register-title {
-  background-image: url("/images/header-bg.jpg");
+  background-color: #5ba80f;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -111,13 +111,17 @@
 }
 
 .register-description h2 {
-  color: rgb(248, 246, 246);
+  color: rgb(3, 0, 0);
   text-decoration: underline;
-  text-decoration-color: black;
+  text-decoration-color: rgb(255, 255, 255);
   text-decoration-thickness: 1px;
   text-underline-offset: 6px;
 }
 
 .register-description p {
   color: black;
+  text-decoration: underline;
+  text-decoration-color: rgb(255, 255, 255);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
 }
